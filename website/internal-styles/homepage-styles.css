@@ -1,0 +1,13 @@
+main a:link, main a:visited {
+    color: var(--alt-accent-color);
+    transition-duration:0.25s;
+}
+
+main a:hover {
+    color: var(--main-accent-color);
+    transition-duration:0.25s;
+}
+
+main p {
+    margin:0;
+}
