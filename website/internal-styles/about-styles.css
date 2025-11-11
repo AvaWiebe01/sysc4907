@@ -1,0 +1,10 @@
+main a:link, main a:visited {
+    color: var(--text-color);
+    font-family:'modern-sans', Arial, sans-serif;
+    transition-duration:0.25s;
+}
+
+main a:hover {
+    color:var(--alt-accent-color);
+    text-shadow: var(--alt-accent-color-glow) 0 0 1rem;
+}
