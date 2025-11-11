@@ -20,15 +20,16 @@
 
 /* ANIMATION KEYFRAMES */
 
+
 /* COLOR PALETTE */
 :root {
     --bg-color: #221828;
     --darktone-color: #130D16;
-    --main-accent-color: #FF0072;
+    --main-accent-color: rgba(255, 0, 114, 1);
     --main-accent-color-glow: rgba(255, 0, 114, 0.5);
-    --alt-accent-color: #72D9FF;
+    --alt-accent-color: rgba(114, 217, 255, 1);
     --alt-accent-color-glow: rgba(114, 217, 255, 0.5);
-    --text-color: #FFFFFF;
+    --text-color: rgba(255, 255, 255, 1);
     --text-color-glow: rgba(255, 255, 255, 0.5);
     --invis: rgba(0,0,0,0);
 }
@@ -47,6 +48,7 @@ body {
 /* HEADER FORMATTING */
 header {
     background: var(--darktone-color);
+    background: radial-gradient(circle, var(--darktone-color) 0%, var(--bg-color) 100%);
 	text-align:center;
     padding:0.5rem 0 1rem 0;
 }
@@ -111,7 +113,7 @@ nav div.links {
 nav div.vertical-handle {
     background:var(--main-accent-color);
     width:0.125rem;
-    height:100%;
+    height:calc(100% - 2rem);
     right:0.5rem;
     position:absolute;
     box-shadow: 0 0 0.75rem var(--main-accent-color);
@@ -156,9 +158,10 @@ main {
 
 /* FOOTER FORMATTING */
 footer {
-    background:var(--bg-color);
+    background: var(--darktone-color);
     color:var(--text-color);
     font-family:'Courier New', Courier, monospace;
     padding:0.5rem;
     margin-left:3rem;
+    text-align: right;
 }
