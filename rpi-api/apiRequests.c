@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <curl/curl.h>
+// #include <curl/curl.h>
 // install curl and use libcurl API
 
 int main() {
