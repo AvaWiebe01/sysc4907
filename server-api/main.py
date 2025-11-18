@@ -14,11 +14,11 @@ class RoadData(BaseModel):
 # Test endpoint
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Response": "You have reached RoadMonitor's API. Visit www.roadmonitor.online/docs/api for more information."}
 
 @app.post("/data")
 def post_road_data(data: RoadData):
-    return {"condition": "Data received!"}
+    return {"Response": "Data received!"}
 
 # Get conditions by coordinates
 @app.get("/conditions/coords/{x_coord}/{y_coord}")
