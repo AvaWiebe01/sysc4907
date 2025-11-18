@@ -5,17 +5,20 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
+# Format for sending and receiving condition data from API
+# If this class is changed, the class "RoadData" in /rpi-api/apiRequests.py must also be updated.
 class RoadData(BaseModel):
     x_coord: float
     y_coord: float
     street_name: str
     iri: float
 
-# Test endpoint
+# Default endpoint
 @app.get("/")
 def read_root():
     return {"Response": "You have reached RoadMonitor's API. Visit www.roadmonitor.online/docs/api for more information."}
 
+# Send data to the database
 @app.post("/data")
 def post_road_data(data: RoadData):
     return {"Response": "Data received!"}
