@@ -4,12 +4,6 @@
 #include <string>
 #include <curl/curl.h>
 
-// #ifdef _WIN32
-//     #include "..\curl-8.17.0\curl-8.17.0\include\curl\curl.h"
-// #else
-//     #include "../curl-8.17.0/curl-8.17.0/include/curl/curl.h"
-// #endif
-
 // Format for sending and receiving condition data from API
 // If this class is changed, the class "RoadData" in /server-api/main.py must also be updated.
 class RoadData {
@@ -41,6 +35,18 @@ bool sendData(RoadData data) {
 
 // Receive road data from the RoadMonitor API using coordinates
 RoadData recvDataCoords(float x_coord, float y_coord) {
+    CURL *curl_handle;
+    CURLcode response;
+    curl_handle = curl_easy_init();
+    
+    std::string url = "http://www.roadmonitor.online:8000/";
+    curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+    
+    std::cout << "Performing cURL GET request...\n";
+    response = curl_easy_perform(curl_handle);
+    
+    curl_easy_cleanup(curl_handle);
+    
     RoadData data;
     return data;
 }
@@ -55,21 +61,21 @@ RoadData recvDataStreetname(std::string street_name) {
 
 // Only use for testing - otherwise, make use of the API communication functions above
 int main() {
-    curl_global_init(CURL_GLOBAL_ALL);
+    // curl_global_init(CURL_GLOBAL_ALL);
 
-    printf("Running API communication test.");
+    std::cout << "Running API communication test.\n";
 
-    RoadData testData_1(24.0, 48.0, "Main", 0.333);
-    sendData(testData_1);
+    // RoadData testData_1(24.0, 48.0, "Main", 0.333);
+    // sendData(testData_1);
 
-    RoadData testData_2(32.0, 64.0, "Stoneview", 0.666);
-    sendData(testData_2);
+    // RoadData testData_2(32.0, 64.0, "Stoneview", 0.666);
+    // sendData(testData_2);
 
-    RoadData returnData_1 = recvDataStreetname("Main");
-    std::cout << std::to_string(testData_1.iri);
+    // RoadData returnData_1 = recvDataStreetname("Main");
+    // std::cout << std::to_string(testData_1.iri);
 
     RoadData returnData_2 = recvDataCoords(32.0, 64.0);
-    std::cout << std::to_string(testData_2.iri); // 
+    // std::cout << std::to_string(testData_2.iri); // 
 
     curl_global_cleanup();
     return 0;
