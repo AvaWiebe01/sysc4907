@@ -13,7 +13,7 @@ class RoadData(BaseModel):
     street_name: str
     iri: float
 
-# Default endpoint
+# Root (default) endpoint
 @app.get("/")
 def read_root():
     return {"Response": "You have reached RoadMonitor's API. Visit www.roadmonitor.online/docs/api for more information."}
