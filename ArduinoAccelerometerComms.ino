@@ -1,69 +1,85 @@
-#include <Adafruit_MPU6050.h>
-#include <string.h>
-#include <Adafruit_Sensor.h>
+/*
+  MPU6050 Serial Outputter
+  Author: Stavros Karamalis, Jackson Fry
 
-#define START_PIN 7
+  This program utilizes an arduino due to poll z-axis accelerometer data from two MPU6050 sensors 
+  and then outputs the data over serial to be read by other devices.
 
-//creates the two IMU sensors
-Adafruit_MPU6050 mpu1, mpu2;
+  A small portion of this code was borrowed from a tutorial made by Dejan at https://howtomechatronics.com
+  to create a basic skeleton to work off of and modify.
+*/
+
+#include <Wire.h>
+#define MPU1_ADDR 0x68 // MPU6050 I2C address
+#define MPU2_ADDR 0x69 // MPU6050 I2C address
+#define GRAVITY_G 9.8067
+
+float getAccelData(int addr){
+  float AccZ;
+  Wire.beginTransmission(addr);
+  Wire.write(0x3F); //Start with register 0x3F (ACCEL_ZOUT_H)
+  Wire.endTransmission(false);
+  Wire.requestFrom(addr, 2, true); // Read 2 registers total, z axis value is stored in 2 registers
+
+  //For a range of +-2g, we need to divide the raw values by 16384, according to the datasheet
+  AccZ = (((Wire.read() << 8 | Wire.read()) / 16384.0) - 1) * GRAVITY_G; // Z-axis value
+  Wire.endTransmission(true);
+  return AccZ;
+}
+
+//This will be run under the assumption that the sensor is at rest.
+float getSensorOffset(int addr){
+  float error = 0;
+  for(int i = 0; i < 100; i++){
+    error += getAccelData(addr);
+    delay(5);
+  }
+  error = error/100;
+  return error;
+}
+
+float sensorOffset1, sensorOffset2;
 
 void setup() {
-  //initializes serial and sets a baudrate of 115200Hz
-  //This value should be agreed upon between the RPi and the arduino
   Serial.begin(115200);
-  pinMode(START_PIN, INPUT);
+  
+  Wire.begin();                      // Initialize comunication
 
-  //wait for signal from RPi to begin polling from sensor
-  while(true){
-    if(digitalRead(START_PIN) == 1){
-      delay(5); //debouncing
-      if(digitalRead(START_PIN) == 1) break; //stop waiting
-    }
-  }
+  Wire.beginTransmission(MPU1_ADDR);       // Start communication with MPU6050 // MPU=0x68
+  Wire.write(0x6B);                  // Talk to the register 6B
+  Wire.write(0x00);                  // Make reset - place a 0 into the 6B register
+  Wire.endTransmission(true);        //end the transmission
+  sensorOffset1 = getSensorOffset(MPU1_ADDR);
 
-  //if the arduino fails detect one or both of the IMUs, write a unique character dedicated to hardware failure messages
-  //the character used to report hardware failures should be agreed upon 
-  if(!mpu1.begin(0x68) || !mpu2.begin(0x69)){
-    Serial.write("X");
+  Wire.beginTransmission(MPU2_ADDR);       // Start communication with MPU6050 // MPU=0x69
+  Wire.write(0x6B);                  // Talk to the register 6B
+  Wire.write(0x00);                  // Make reset - place a 0 into the 6B register
+  Wire.endTransmission(true);        //end the transmission
+  sensorOffset2 = getSensorOffset(MPU2_ADDR);
 
-    while(true){
-      delay(10);
-    }
-  }
-
-  //Sets the range and filter bandwidth for the IMUs
-  mpu1.setAccelerometerRange(MPU6050_RANGE_4_G);
-  mpu1.setFilterBandwidth(MPU6050_BAND_260_HZ);
-
-  mpu2.setAccelerometerRange(MPU6050_RANGE_4_G);
-  mpu2.setFilterBandwidth(MPU6050_BAND_260_HZ);
+  delay(20);
 }
 
 void loop() {
-
-  sensors_event_t mpu1Accel, mpu2Accel, dummyGyro, dummyTemp;
-
-  //polls data from the sensors
-  mpu1.getEvent(&mpu1Accel, &dummyGyro, &dummyTemp);
-  mpu2.getEvent(&mpu2Accel, &dummyGyro, &dummyTemp);
-
-  //averages the value of the two sensors
-  float accelData = (mpu1Accel.acceleration.z + mpu2Accel.acceleration.z) / 2;
+  float accelData1 = getAccelData(MPU1_ADDR) - sensorOffset1;
+  float accelData2 = getAccelData(MPU2_ADDR) - sensorOffset2;
+  float accelData = (accelData2 + accelData1) / 2;
 
   //converts the sensor data into bytes which will later be sent to the RPi
-  byte* accelDataBytes = (byte *)&accelData;
-  
+  String buffer = String(accelData, 10);  
+
   //unique character that indicates start of new sensor data
   Serial.write("@");
 
   //writes the raw data byte by byte
-  for(int i = 0; i < sizeof(float); i++){
-    Serial.write(accelDataBytes[i]);
+  for(int i = 0; i < sizeof(buffer); i++){
+    Serial.write(buffer[i]);
   }
 
   //unique character that indicates end of new sensor data
   Serial.write("#");
 
-  delay(5);
+  Serial.println("\n");
 
+  delay(5);
 }
