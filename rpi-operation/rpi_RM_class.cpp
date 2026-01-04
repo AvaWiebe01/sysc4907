@@ -70,7 +70,6 @@ class RoadMonitor{
 		while(true){ // loop until program finish
 			recorded_point newPoint; //struct that all 
 			i = i+1.1;
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			//get new point from arduino
 			/*********/
 			char buffer[11];
@@ -82,7 +81,11 @@ class RoadMonitor{
             size_t pos1 = buffer_str.find("@");
             size_t pos2 = buffer_str.find("#");
 
-            string measured_accel = buffer_str.substr(pos1+1, pos2);
+            string measured_accel = buffer_str.substr(pos1+1, pos2-1);
+            
+            if(measured_accel.length() <= 2) continue;
+            
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 			//convert from string to float:
 			newPoint.collected_data = stof(measured_accel);
@@ -132,23 +135,20 @@ class RoadMonitor{
 		if (timedout){
 			return 1;
 		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(25));
 		recorded_point newPoint;
 		
 			// releases when lock goes out of scope.
+			
 			{
 				unique_lock<mutex> lock(mtx);
 				//if queue is empty wait for new point
 				while (work.empty()) cv.wait(lock);
 				newPoint = work.front();
+				cerr << work.size();
 				work.pop();
 			} 
-			cerr<<newPoint.collected_data;
-			cerr<<" ";
-			cerr<<newPoint.lat;
-			cerr<<" ";
-			cerr<<newPoint.lon;
-			cerr<<"\n";
+			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<"\n";
 			/*process data*/
 			/**********/
 			
