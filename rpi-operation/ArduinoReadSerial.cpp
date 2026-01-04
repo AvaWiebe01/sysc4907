@@ -1136,10 +1136,8 @@ unsigned long int timeOut::elapsedTime_ms()
     return sec*1000+usec/1000;
 #endif
 }
-
+/*
 // Serial object
-
-
 int main(){
 serialib serial;
 
@@ -1159,12 +1157,11 @@ char buffer[11];
 while(1){
     // Read the string
     serial.readString(buffer, '\n', 14, 2000);
-    printf("String read: %s\n", buffer);
-    
-    
+    printf("String read: %s\n", buffer); 
 }
 
 // Close the serial device
 serial.closeDevice();
 
 };
+*/

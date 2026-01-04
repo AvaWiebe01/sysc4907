@@ -3,12 +3,13 @@
 #include <string>
 #include <thread>
 #include <chrono>
-#include <libgpsmm.h>
+//#include <libgpsmm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <mutex>
 #include <condition_variable>
+#include "ArduinoReadSerial.cpp"
 
 
 #define GPS_TIMEOUT 50000000 //timeout in x for GPS Hat
@@ -39,6 +40,20 @@ class RoadMonitor{
 	}
 	
 	int record_data(const string iname){
+        //initialize serial
+        
+        // Serial object
+        serialib serial;
+        // Connection to serial port
+        char errorOpening = serial.openDevice("/dev/ttyUSB0", 115200);
+
+        // If connection fails, return the error code otherwise, display a success message
+        if (errorOpening != 1){
+            printf("error opening");
+            return errorOpening;
+        }
+        printf ("Successful connection to com10 \n");
+
 		//initialize gps 
 			//declare GPS object
 		//gpsmm gps_rec("localhost", DEFAULT_GPSD_PORT);
@@ -58,13 +73,19 @@ class RoadMonitor{
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			//get new point from arduino
 			/*********/
-			char* measured_accel;
-			/*
-			
-			
-			*/
+			char buffer[11];
+
+            serial.readString(buffer, '\n', 14, 2000);
+            //printf("String read: %s\n", measured_accel); 
+            //remove indicators
+            string buffer_str(buffer);
+            size_t pos1 = buffer_str.find("@");
+            size_t pos2 = buffer_str.find("#");
+
+            string measured_accel = buffer_str.substr(pos1+1, pos2);
+
 			//convert from string to float:
-			newPoint.collected_data = i;//strtof(measured_accel);
+			newPoint.collected_data = stof(measured_accel);
 			 
 			//get location data
 			/*struct gps_data_t * newdata; // create struct to hold gps data 
@@ -100,6 +121,7 @@ class RoadMonitor{
 			}
 			
 		}
+        serial.closeDevice();
 		
 		return 0;
 	}
