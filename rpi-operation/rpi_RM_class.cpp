@@ -87,8 +87,10 @@ class RoadMonitor{
 
             string measured_accel = buffer_str.substr(pos1+1, pos2-1);
             
-            if(measured_accel.length() <= 2) continue;
-            
+            if(measured_accel.length() <= 2) {
+				continue;
+			}
+			
 			newPoint.timestamp = chrono::system_clock::now();
 
 			//convert from string to float:
@@ -152,7 +154,6 @@ class RoadMonitor{
 				//if queue is empty wait for new point
 				while (work.empty()) cv.wait(lock);
 				newPoint = work.front();
-				cerr << work.size();
 				work.pop();
 			} 
 			

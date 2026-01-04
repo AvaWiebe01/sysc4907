@@ -70,7 +70,10 @@ void loop() {
     accelData2 = getAccelData(MPU2_ADDR) - sensorOffset2;
     accelData = (accelData2 + accelData1) / 2;
 
-    if(abs(accelData) > abs(accelDataMax)) accelDataMax = accelData;
+
+    if(abs(accelData) > abs(accelDataMax)){
+      accelDataMax = accelData;
+    }
     delay(5);
   }
 
