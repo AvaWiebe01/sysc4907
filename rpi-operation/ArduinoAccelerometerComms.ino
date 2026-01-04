@@ -61,12 +61,21 @@ void setup() {
 }
 
 void loop() {
-  float accelData1 = getAccelData(MPU1_ADDR) - sensorOffset1;
-  float accelData2 = getAccelData(MPU2_ADDR) - sensorOffset2;
-  float accelData = (accelData2 + accelData1) / 2;
+  float accelData1, accelData2, accelData;
+  float accelDataMax = 0;
+
+  //polls from sensors 20 times and chooses the largest acceleration to write over serial
+  for(int i = 0; i < 20; i++){
+    accelData1 = getAccelData(MPU1_ADDR) - sensorOffset1;
+    accelData2 = getAccelData(MPU2_ADDR) - sensorOffset2;
+    accelData = (accelData2 + accelData1) / 2;
+
+    if(abs(accelData) > abs(accelDataMax)) accelDataMax = accelData;
+    delay(5);
+  }
 
   //converts the sensor data into bytes which will later be sent to the RPi
-  String buffer = String(accelData, 10);  
+  String buffer = String(accelDataMax, 10);  
 
   //unique character that indicates start of new sensor data
   Serial.write("@");
@@ -78,8 +87,7 @@ void loop() {
 
   //unique character that indicates end of new sensor data
   Serial.write("#");
-
   Serial.println("\n");
 
-  delay(5);
 }
+
