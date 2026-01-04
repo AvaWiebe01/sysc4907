@@ -154,6 +154,7 @@ class RoadMonitor{
 				//if queue is empty wait for new point
 				while (work.empty()) cv.wait(lock);
 				newPoint = work.front();
+				cerr << work.size();
 				work.pop();
 			} 
 			
