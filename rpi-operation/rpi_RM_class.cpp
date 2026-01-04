@@ -10,6 +10,8 @@
 #include <mutex>
 #include <condition_variable>
 #include "ArduinoReadSerial.cpp"
+#include <ctime>
+#include <fstream>
 
 
 #define GPS_TIMEOUT 50000000 //timeout in x for GPS Hat
@@ -20,6 +22,7 @@ struct recorded_point{
 	float lat;
 	float lon;
 	float collected_data;
+	chrono::time_point<chrono::system_clock> timestamp;
 };
 
 class RoadMonitor{
@@ -66,10 +69,11 @@ class RoadMonitor{
 		
 		
 		//get data
-		float i = 1.1;
+		//float i = 1.1; test value
+
 		while(true){ // loop until program finish
 			recorded_point newPoint; //struct that all 
-			i = i+1.1;
+			//i = i+1.1;
 			//get new point from arduino
 			/*********/
 			char buffer[11];
@@ -85,7 +89,7 @@ class RoadMonitor{
             
             if(measured_accel.length() <= 2) continue;
             
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			newPoint.timestamp = chrono::system_clock::now();
 
 			//convert from string to float:
 			newPoint.collected_data = stof(measured_accel);
@@ -129,8 +133,11 @@ class RoadMonitor{
 		return 0;
 	}
 	
-	int interpret_data(const string iname){
-		
+	int interpret_data(const string iname, string filename){
+		ofstream logFile(filename);
+		logFile << "Accel, lat, lon, time"<< endl;
+
+
 		while(true){ // loop until program finish
 		if (timedout){
 			return 1;
@@ -148,8 +155,13 @@ class RoadMonitor{
 				cerr << work.size();
 				work.pop();
 			} 
-			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<"\n";
+			
+			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<endl;
 			/*process data*/
+			//get time since epoch in milliseconds from recorded timestamp for data point
+			auto milliseconds_since_epoch = chrono::duration_cast<chrono::milliseconds>(
+        		newPoint.timestamp.time_since_epoch()).count();
+			logFile << newPoint.collected_data <<", " <<newPoint.lat <<", " <<newPoint.lon << ", " << milliseconds_since_epoch<<endl; 
 			/**********/
 			
 			//send to database
@@ -168,10 +180,15 @@ class RoadMonitor{
 
 
 int main(){
+	string filename = "";
+	cout<<"Enter a name for the log data with no file extension: ";
+	cin>>filename;
+	filename = filename + ".txt";
+
 	RoadMonitor rm("rm");
 	thread record(&RoadMonitor::record_data, &rm, "data_recorder");
 	record.detach();
-	thread interpret(&RoadMonitor::interpret_data, &rm, "data_interpreter");
+	thread interpret(&RoadMonitor::interpret_data, &rm, "data_interpreter", filename);
 	interpret.join();
 
 }
