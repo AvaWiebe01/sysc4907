@@ -59,7 +59,7 @@ class RoadMonitor{
             printf("error opening");
             return errorOpening;
         }
-        printf ("Successful connection to com10 \n");
+        printf ("Successful connection to Arduino Nano \n");
 
 		//initialize gps 
 			//declare GPS object
