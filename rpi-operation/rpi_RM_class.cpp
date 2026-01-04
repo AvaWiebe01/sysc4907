@@ -52,7 +52,7 @@ class RoadMonitor{
             printf("error opening");
             return errorOpening;
         }
-        printf ("Successful connection to com10 \n");
+        printf ("Successful connection to Arduino Nano \n");
 
 		//initialize gps 
 			//declare GPS object
@@ -145,7 +145,6 @@ class RoadMonitor{
 				//if queue is empty wait for new point
 				while (work.empty()) cv.wait(lock);
 				newPoint = work.front();
-				cerr << work.size();
 				work.pop();
 			} 
 			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<"\n";
