@@ -23,6 +23,7 @@ struct recorded_point{
 	float lon;
 	float collected_data;
 	chrono::time_point<chrono::system_clock> timestamp;
+	int valid = 1;
 };
 
 class RoadMonitor{
@@ -138,17 +139,44 @@ class RoadMonitor{
 	int interpret_data(const string iname, string filename){
 		ofstream logFile(filename);
 		logFile << "Accel, lat, lon, time"<< endl;
+		
+		//store previous data point as well
+		recorded_point prevPoint;
+		//need 2 data points for calculation
+		prevPoint.valid = -1;
 
+		//initialize previous position and velocity
+		float prevPos = 0.0;
+		float prevVel = 0.0;
 
+		//counter to track number of processed points
+		int i = 0;
+
+		//counter to track number of road segments
+		int j = 0;
+		//strings required to build the CSV
+		string segmentfile = "values";
+
+		
+
+		string currentFilename = segmentfile + to_string(j) + ".csv";
+		ofstream roadSegment; //open road segment file, clearing any trace of old uses
 		while(true){ // loop until program finish
-		if (timedout){
+		//if gps timed out kill program
+			if (timedout){
 			return 1;
 		}
+
+		if (i <=0){
+			//open a titled 
+			string currentFilename = segmentfile + to_string(j) + ".csv";
+			roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
+			j++;
+		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(25));
 		recorded_point newPoint;
-		
 			// releases when lock goes out of scope.
-			
 			{
 				unique_lock<mutex> lock(mtx);
 				//if queue is empty wait for new point
@@ -157,14 +185,44 @@ class RoadMonitor{
 				work.pop();
 			} 
 			
+			//print to console for debug purposes
 			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<endl;
-			/*process data*/
+
 			//get time since epoch in milliseconds from recorded timestamp for data point
+			//
 			auto milliseconds_since_epoch = chrono::duration_cast<chrono::milliseconds>(
         		newPoint.timestamp.time_since_epoch()).count();
+			//write data point to log file
 			logFile << newPoint.collected_data <<", " <<newPoint.lat <<", " <<newPoint.lon << ", " << milliseconds_since_epoch<<endl; 
-			/**********/
 			
+			/**********/
+			//process
+			if (prevPoint.valid == -1){
+				//do nothing
+			}
+			else{
+				//get change in time
+				int t = static_cast<int>(milliseconds_since_epoch) - \
+					static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
+				float prevA = prevPoint.collected_data; //get total change in acceleration
+				float rocA = (newPoint.collected_data - prevA)/t; //calculate jerk
+				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
+				float position =  prevPos + prevVel*t + (1/2)*prevA*(t^2) + (1/6) * rocA * (t^3); //calculate position
+				//prevPos = position;
+				//prevVel = vel;
+
+				roadSegment << position << ",";
+				//increase counter
+				i++;
+
+			}
+			prevPoint = newPoint;
+			if (i >=150){
+				i = 0;
+			}
+
+
+
 			//send to database
 			/**********/
 			
