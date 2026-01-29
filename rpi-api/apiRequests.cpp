@@ -84,8 +84,24 @@ RoadData recvDataCoords(float x_coord, float y_coord) {
     CURL *curl_handle;
     CURLcode response;
     curl_handle = curl_easy_init();
+
+    // Convert floats to strings
+    std::stringstream stream;
+    std::string x_coord_str;
+    std::string y_coord_str;
+
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << x_coord;
+    x_coord_str = stream.str();
+    stream.str("");
+    stream.clear();
+
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << y_coord;
+    y_coord_str = stream.str();
+    stream.str("");
+    stream.clear();
     
-    std::string url = "http://www.roadmonitor.online:8000/";
+    // Construct proper URL with coordinates
+    std::string url = "http://www.roadmonitor.online:8000/conditions/coords/" + x_coord_str + "/" + y_coord_str;
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
     
     std::cout << "Performing cURL GET request...\n";
