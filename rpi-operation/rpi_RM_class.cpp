@@ -34,13 +34,14 @@ class RoadMonitor{
 	mutex mtx;				
 	condition_variable cv;
 	bool timedout = false; // if the gps times out exit both threads
-	
+	int vehicle_type;
 	
 	public:
 	string name;
 	
-	RoadMonitor(const string iname){ //constructor
+	RoadMonitor(const string iname, int type){ //constructor
 		this->name = iname;
+		this->vehicle_type = type;
 	}
 	
 	int record_data(const string iname){
