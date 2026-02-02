@@ -81,12 +81,14 @@ nav {
     color: var(--invis);
     top:0;
     transition-duration:0.5s;
+    z-index:1000;
 }
 
 nav:hover {
     width:12rem;
     transition-duration:0.5s;
     color: var(--main-accent-color);
+    z-index:1000;
 }
 
 nav div.title {

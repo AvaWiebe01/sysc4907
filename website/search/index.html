@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en-US">
+	<head>
+		<meta charset="utf-8">
+		<meta name="author" content="Ava Wiebe">
+		<meta name="description" content="Search for Condition Data.">
+		<title>RoadMonitor - Search</title>
+		<link rel="icon" href="../images/favicon.png">
+
+        <link rel="stylesheet" href="../internal-styles/global-styles.css">
+        <link rel="stylesheet" href="../internal-styles/search-styles.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""/>
+	</head>
+
+    <body>
+        <header>
+            <div>
+                <a href="/" target="_self">RoadMonitor</a>
+            </div>
+        </header>
+        
+        <nav>
+            <div class="links">
+                <div class="title">
+                    Navigation
+                </div>
+                <div class="page-link">
+                    <a href="/search" target="_self">Search Road Conditions</a>
+                </div>
+                <div class="page-link">
+                    <a href="/about" target="_self">About Us</a>
+                </div>
+                <div class="page-link">
+                    <a href="/docs" target="_self">Documentation</a>
+                </div>
+                <div class="page-link">
+                    <a href="/tos" target="_self">Terms of Use</a>
+                </div>
+            </div>
+            <div class="vertical-handle">
+                
+            </div>
+        </nav>
+
+        <main>
+            <h1>Search Road Conditions</h1>
+            <div class="outer-frame">
+                <div class="map" id="map">
+                    Map is loading, please wait!
+                    <br>
+                    Tip: If loading takes more than 10 seconds, accept or decline your browser's location prompt and refresh the page.
+                </div>
+                <div class="condition-panel">
+                    <h2>Selected Conditions</h2>
+                    <div class="condition-display" id="condition-display">No location selected. Click a spot on the map to find nearby data!</div>
+                    <button class="search-button">Click to Search</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div>
+                © RoadMonitor 2025. All rights reserved.
+            </div>
+        </footer>
+    </body>
+
+    <!-- Load scripts for map/search functionality -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <script src="../internal-scripts/search-script.js"></script>
+</html>

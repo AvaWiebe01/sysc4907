@@ -2,3 +2,4 @@
 .venv
 *.txt
 *.out
+settings.json
