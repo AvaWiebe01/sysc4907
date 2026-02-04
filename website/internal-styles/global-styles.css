@@ -44,6 +44,16 @@ body {
     margin-left:0;
 }
 
+.main-accent {
+    color: var(--main-accent-color);
+    text-shadow: var(--main-accent-color-glow) 0 0 1rem;
+}
+
+.alt-accent {
+    color: var(--alt-accent-color);
+    text-shadow: var(--alt-accent-color-glow) 0 0 1rem;
+}
+
 /* HEADER FORMATTING */
 header {
     background: var(--darktone-color);
