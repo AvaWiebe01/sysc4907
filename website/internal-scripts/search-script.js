@@ -1,6 +1,8 @@
 const COORD_PRECISION = 5
 const INITIAL_ZOOM = 16;
 const MAX_ZOOM = 20;
+const SEARCH_RADIUS = 100;
+const UNNAMED_ROAD_STRING = "Unnamed"
 const IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc" // locationIQ API token
 
 // Holds all global variables (except constants)
@@ -22,13 +24,40 @@ function searchForConditions(ev) {
     // Format for LocationIQ API call - LONGITUDE BEFORE LATITUDE
     var url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","
-        + myPage.selectedCoords.lat.toFixed(7) + "?key=<"
+        + myPage.selectedCoords.lat.toFixed(7) + "?radiuses="
+        + SEARCH_RADIUS + "&key="
         + IQ_TOKEN
-        + ">&number=1"; 
+        + "&number=1"; 
 
-    fetch(url).then((response) => {
+    // Make call
+    fetch(url)
+    .then((response) => {
         console.log("URL fetched");
-        
+        if (!response.ok) {
+            throw new Error(`HTTP error. Status: ${response.status}`);
+        }
+        // get response as JSON
+        return response.json();
+    })
+    .then(resp => {
+        console.log(resp);
+
+        // some small local roads do not have a name
+        var roadName = (resp.waypoints[0].name != "") ? resp.waypoints[0].name : UNNAMED_ROAD_STRING;
+
+        // call roadMonitor API to receive our IRI back
+    
+        // format results for HTML
+        var conditionResults = '<span class="main-accent">Road: </span>' + roadName;
+
+        // display results to user
+        myPage.conditionDisplay.innerHTML = conditionResults;
+    }).catch((error) => {
+        console.log(error);
+
+        // tell the user to select a point closer to their desired road
+        var errorMsg = '<span class="main-accent">Sorry, no nearby road found.</span><br>Please select coordinates that are closer to the desired road.';
+        myPage.conditionDisplay.innerHTML = errorMsg;
     });
 }
 
