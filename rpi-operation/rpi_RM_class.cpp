@@ -244,6 +244,9 @@ class RoadMonitor{
 
 				//increase counter
 				i++;
+
+				//send to GUI
+
 			}
 			prevPoint = newPoint;
 
@@ -346,8 +349,13 @@ int main(){
 		exit(1);
 	}
 
+	//create shared memory object
+	
 
+	//create road monitor object
 	RoadMonitor rm("rm");
+
+	//start threads
 	thread record(&RoadMonitor::record_data, &rm, "data_recorder");
 	record.detach();
 	thread interpret(&RoadMonitor::interpret_data, &rm, "data_interpreter", filename);
