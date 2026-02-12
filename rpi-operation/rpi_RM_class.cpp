@@ -183,17 +183,16 @@ class RoadMonitor{
 				roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
 			}
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(25));
-			recorded_point newPoint;
-				// releases when lock goes out of scope.
-				{
-					unique_lock<mutex> lock(mtx);
-					//if queue is empty wait for new point
-					while (work.empty()) cv.wait(lock);
-					newPoint = work.front();
-					cerr << work.size();
-					work.pop();
-				} 
+		std::this_thread::sleep_for(std::chrono::milliseconds(25));
+		recorded_point newPoint;
+			// releases when lock goes out of scope.
+			{
+				unique_lock<mutex> lock(mtx);
+				//if queue is empty wait for new point
+				while (work.empty()) cv.wait(lock);
+				newPoint = work.front();
+				work.pop();
+			} 
 			
 			//print to console for debug purposes
 			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<endl;
