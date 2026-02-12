@@ -246,7 +246,7 @@ class RoadMonitor{
 				i++;
 
 				//send to GUI
-
+                
 			}
 			prevPoint = newPoint;
 
