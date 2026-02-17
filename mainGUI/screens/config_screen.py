@@ -25,7 +25,7 @@ class ConfigMenu(Screen):
 
     def start_network_gui(self):
         possible_commands = [
-            ["gnome-control-center", "network"],
+            ["gnome-control-center", "wi-fi"],
             ["nm-connection-editor"],
             ["nm-applet"],
             ["kcmshell5", "kcm_networkmanagement"],
