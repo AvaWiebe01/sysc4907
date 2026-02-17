@@ -279,11 +279,9 @@ ScreenManager:
 
         MenuButton:
             id: connection_button
-            source_normal: "assets/ConfigMenu/back_button_normal.png"
-            source_down: "assets/ConfigMenu/back_button_pressed.png"
-            size_hint: (0.1725, 0.2875)
+            source_normal: "assets/ConfigMenu/network_button_normal.png"
+            source_down: "assets/ConfigMenu/network_button_pressed.png"
             pos_hint: {"center_x": 0.5, "center_y": 0.17}
 
             on_perform_action: 
-                app.root.transition.direction = "right"
-                app.root.current = self.target
+                root.start_network_gui()

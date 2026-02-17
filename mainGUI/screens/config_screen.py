@@ -4,6 +4,7 @@ from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
+import subprocess
 
 class ConfigMenu(Screen):
     app = ObjectProperty(None)
@@ -21,6 +22,21 @@ class ConfigMenu(Screen):
             self.ids.dcrmnt_yr.bind(on_press=self._on_decrement_press, on_release=self._on_decrement_release)
         except Exception:
             pass
+
+    def start_network_gui(self):
+        possible_commands = [
+            ["gnome-control-center", "network"],
+            ["nm-connection-editor"],
+            ["nm-applet"],
+            ["kcmshell5", "kcm_networkmanagement"],
+            ["systemsettings5", "network"]
+        ]
+        for command in possible_commands:
+            try:
+                subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
+                return
+            except Exception:
+                pass
 
     def increment_year(self):
         current_year = datetime.now().year
