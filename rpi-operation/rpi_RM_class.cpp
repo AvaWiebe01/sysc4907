@@ -68,6 +68,17 @@ class RoadMonitor{
             return errorOpening;
         }
         printf ("Successful connection to Arduino Nano \n");
+
+		//initialize gps 
+			//declare GPS object
+		//gpsmm gps_rec("localhost", DEFAULT_GPSD_PORT);
+
+		//gps issue return
+		/*if (gps_rec.stream(WATCH_ENABLE|WATCH_JSON) == NULL) {
+			cerr << "No GPSD running.\n";
+			return 1;
+		}*/
+		
 		
 		//get data
 		//float i = 1.1; test value
