@@ -12,6 +12,10 @@
 #include "ArduinoReadSerial.cpp"
 #include <ctime>
 #include <fstream>
+#include<cmath>
+#include <Python.h>
+#include "./mainGUI/sharedMemComms.cpp"
+#include "GPSWrapper.cpp"
 
 
 #define GPS_TIMEOUT 50000000 //timeout in x for GPS Hat
@@ -30,11 +34,18 @@ class RoadMonitor{
 	private:
 	queue<recorded_point> work;
 	
+	//SharedData object to communicate with GUI
+	SharedData sharedmem;
+	
 	//used to manage access to the work queue
 	mutex mtx;				
 	condition_variable cv;
 	bool timedout = false; // if the gps times out exit both threads
-	
+	int vehicle_type = -1;
+	int vehicle_year = -1;
+	int vehicle_class= -1;
+	bool recording = true;
+	bool exitValue = false;
 	
 	public:
 	string name;
@@ -71,8 +82,13 @@ class RoadMonitor{
 		
 		//get data
 		//float i = 1.1; test value
-
+		double latlon[2] = {0.0, 0.0}
 		while(true){ // loop until program finish
+			//end program
+			if (exitValue == true){
+				exit(0);
+			}
+
 			recorded_point newPoint; //struct that all 
 			//i = i+1.1;
 			//get new point from arduino
@@ -98,31 +114,15 @@ class RoadMonitor{
 			newPoint.collected_data = stof(measured_accel);
 			 
 			//get location data
-			/*struct gps_data_t * newdata; // create struct to hold gps data 
-			while (!gps_rec.waiting(GPS_TIMEOUT)) {
-				
-			}
-			
-			if ((newdata = gps_rec.read()) == NULL) {
-				cerr << "Read error.\n";
-				//retry to see if the error persists
-				while (!gps_rec.waiting(GPS_TIMEOUT)){}
-				
-				//check read again
-				if ((newdata = gps_rec.read()) == NULL){
-					cerr << "Read error persists. Exiting Program\n";
-					timedout = true; //set timedout kill flag
-					return 1;
-				}
-				
-			}*/
-			
+			gps.getLocation(latlon);
+
 			//put gps loction data into the recorded point struct
-			newPoint.lat = 0.0;//newdata->lat;
-			newPoint.lon = 0.0;//newdata->log;
+			newPoint.lat = latlon[0];//newdata->lat;
+			newPoint.lon = latlon[1];//newdata->log;
 
 				
 			// releases when lock goes out of scope.
+			if (this->recording == true)
 			{
 				unique_lock<mutex> lock(mtx);
 				work.push(newPoint);
@@ -148,31 +148,43 @@ class RoadMonitor{
 		//initialize previous position and velocity
 		float prevPos = 0.0;
 		float prevVel = 0.0;
+		float prevTime = 0.0;
+		float currentIRI = 0.0;
 
 		//counter to track number of processed points
 		int i = 0;
 
-		//counter to track number of road segments
-		int j = 0;
 		//strings required to build the CSV
 		string segmentfile = "values";
 
-		
+		//create variables to store first and last position;
+		float s_lat = 0.0;
+		float s_lon = 0.0;
+		float e_lat = 0.0;
+		float e_lon = 0.0;
+		float mp_lat = 0.0;
+		float mp_lon = 0.0;
 
-		string currentFilename = segmentfile + to_string(j) + ".csv";
+		//make an empty array for the road segments
+		float segment[150][2]; //150 data points
+
+		string currentFilename = segmentfile + ".csv";
 		ofstream roadSegment; //open road segment file, clearing any trace of old uses
 		while(true){ // loop until program finish
 		//if gps timed out kill program
-			if (timedout){
-			return 1;
-		}
+			//end program
+			exitValue = sharedmem.exited();
 
-		if (i <=0){
-			//open a titled 
-			string currentFilename = segmentfile + to_string(j) + ".csv";
-			roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
-			j++;
-		}
+			if (exitValue == true){
+				exit(0);
+			}
+
+			//reset recorded matrix
+			if (i <=0){
+				//open a titled 
+				string currentFilename = segmentfile + ".csv";
+				roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
+			}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(25));
 		recorded_point newPoint;
@@ -185,6 +197,7 @@ class RoadMonitor{
 				work.pop();
 			} 
 			
+			
 			//print to console for debug purposes
 			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<endl;
 
@@ -192,41 +205,115 @@ class RoadMonitor{
 			//
 			auto milliseconds_since_epoch = chrono::duration_cast<chrono::milliseconds>(
         		newPoint.timestamp.time_since_epoch()).count();
-			//write data point to log file
+			
+				//write data point to log file
 			logFile << newPoint.collected_data <<", " <<newPoint.lat <<", " <<newPoint.lon << ", " << milliseconds_since_epoch<<endl; 
 			
 			/**********/
-			//process
+			//process data
+
+			//
 			if (prevPoint.valid == -1){
-				//do nothing
+				//do nothing -> need more points to have useful information
 			}
+
+			//
 			else{
+				if (i <= 0){
+					//record start position of road segment
+					s_lat = newPoint.lat;
+					s_lon = newPoint.lon;
+				}
+
+				if (i == 75)
+				{
+					mp_lat = newPoint.lat;
+					mp_lon = newPoint.lon;
+				}
+
 				//get change in time
 				int t = static_cast<int>(milliseconds_since_epoch) - \
 					static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-				float prevA = prevPoint.collected_data; //get total change in acceleration
-				float rocA = (newPoint.collected_data - prevA)/t; //calculate jerk
-				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
-				float position =  prevPos + prevVel*t + (1/2)*prevA*(t^2) + (1/6) * rocA * (t^3); //calculate position
-				//prevPos = position;
-				//prevVel = vel;
+				
+				//get change in time in ms
+				float dt = float(t)-prevTime;
+				
+				//convert dt to seconds
+				float ts = dt/1000; 
 
+				//get total change in acceleration
+				float prevA = prevPoint.collected_data;
+
+				//calculate jerk
+				float rocA = (newPoint.collected_data - prevA)/ts; 
+
+				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
+				float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
+
+				//log position
 				roadSegment << position << ",";
+				
+				//update position matrix
+				segment[i][1] = position;
+
 				//increase counter
 				i++;
 
+				//store prev time
+				prevTime = t;
+
+				//send accelerometer values and  to GUI
+                sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
 			}
 			prevPoint = newPoint;
+
+			//calculate iri for road segment and reset i
 			if (i >=150){
+				//record last point position data
+				e_lat = newPoint.lat;
+				e_lon = newPoint.lon;
+
+
+				/*  BUILD PYTHON ARGUMENTS    */
+				//get distance between start and end position in meters
+				float distance = segment_distance(s_lat, s_lon, e_lat, e_lon);
+
+				//get spacing between recorded points -> i is the number of points recorded
+				//assuming most points recorded successfully
+				float distance_between_points = distance / i;
+				for (int j = 0; j <=150; j++)
+				{
+					segment[j][0] = distance_between_points*j;
+				}
+				PyObject* roadMatrix = PyUnicode_DecodeFSDefault(segment); //matrix of road profile
+				PyObject* startPos = PyUnicode_DecodeFSDefault(0); //start at pos 0
+				PyObject* step = PyUnicode_DecodeFSDefault(0); //treat as no overlap
+
+				//create argument tuple
+				PyObject* pArgs = PyTuple_New(3);
+				PyTuple_SetItem(pArgs, 0, roadMatrix);
+				PyTuple_SetItem(pArgs, 1, startPos);
+				PyTuple_SetItem(pArgs, 2, step);
+				
+				//call IRI calculator
+				PyObject* pResult = PyObject_CallObject(iriCalculator, pArgs);
+				Py_DECREF(pArgs); //deallocate argument tuple
+
+				//process results
+				if (pResult == nullptr) {
+					//data is useless restart loop
+					continue;
+				}
+				const char* resultStr = PyUnicode_AsUTF8(pResult);
+				currentIRI = strtof(resultStr); //change to be output of the python code.
+
+				//reset counter i
 				i = 0;
 			}
 
-
-
 			//send to database
 			/**********/
-			
-	
+
 		}
 		return 0;
 	}
@@ -235,19 +322,79 @@ class RoadMonitor{
 	
 };	
 
-
-
-
 int main(){
 	string filename = "";
 	cout<<"Enter a name for the log data with no file extension: ";
 	cin>>filename;
 	filename = filename + ".txt";
 
+	//initialize python for IRI calculations
+	Py_Initialize();
+
+	// Set PYTHONPATH to the current directory
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('.')");
+
+	//prepare python function object for repeated use
+	//choose the IRI calculation file
+	PyObject* pName = PyUnicode_DecodeFSDefault("IRI");
+	//import the file as a module
+	PyObject* pModule = PyImport_Import(pName);
+
+	// deallocate pName as it is no longer needed.
+	Py_DECREF(pName);
+
+	//ensure the python module exists
+	if (pModule != nullptr) {
+		//load target function from python module
+		PyObject* iriCalculator = PyObject_GetAttrString(pModule,"iri");
+		//ensure the specified function exists
+		if (iriCalculator && PyCallable_Check(iriCalculator)){
+			//function loaded successfully
+		}
+		else{
+			cerr<<"Fatal error: Could not load IRI calculator python function";
+			exit(1);
+		}
+	}
+	else{
+		cerr<<"Fatal error: Could not load IRI calculator python module";
+		exit(1);
+	}
+
+	//set up GPS
+	GPSWrapper();
+
+	//create road monitor object
 	RoadMonitor rm("rm");
+
+	//start threads
 	thread record(&RoadMonitor::record_data, &rm, "data_recorder");
 	record.detach();
 	thread interpret(&RoadMonitor::interpret_data, &rm, "data_interpreter", filename);
 	interpret.join();
 
+}
+
+float segment_distance(float start_lat, float start_lon, float end_lat, float end_lon)
+{
+	//convert to radians
+	float s_lat = start_lat * (M_PI/180);
+	float s_lon = start_lon * (M_PI/180);
+	float e_lat = end_lat * (M_PI/180);
+	float e_lon = end_lon * (M_PI/180);
+
+	//Use the Haversine formula
+	//to determine length between two points
+	//assuming a spherical Earth with radius r = 6371 km = 6371000 m
+	float r = 6371000.0;
+
+	//a = sin^2 ((e_lat - s_lat)/2) + cos(s_lat)  * ( cos(e_lat) ) * ( sin^2 ((e_lon-s_lon)/2) )
+	float a = pow(sin((e_lat - s_lat)/2), 2) + cos(s_lat) * cos(e_lat) * pow(sin((e_lon-s_lon)/2), 2);
+	//c = 2 * atan (sqrt(a) / (sqrt a-1));
+	float c = 2 * atan(sqrt(a) / sqrt(1-a));
+	//d = r*c
+	float d = r * c;
+
+	return d;
 }
