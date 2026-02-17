@@ -10,21 +10,21 @@
 // If this class is changed, the class "RoadData" in /server-api/main.py must also be updated.
 class RoadData {
     public:
-        float x_coord;
-        float y_coord;
+        float lat;
+        float lng;
         float roughness;
         std::chrono::time_point<std::chrono::system_clock> timestamp;
 
         // Default constructor
         RoadData() {
-            x_coord = 0.0;
-            y_coord = 0.0;
+            lat = 0.0;
+            lng = 0.0;
             roughness = 99999.9;
             timestamp = {};
         }
 
         // Parametrized constructor
-        RoadData(float x, float y, float rfns, std::chrono::time_point<std::chrono::system_clock> time) : x_coord(x), y_coord(y), roughness(rfns), timestamp(time) {
+        RoadData(float latitude, float longitude, float rfns, std::chrono::time_point<std::chrono::system_clock> time) : lat(latitude), lng(longitude), roughness(rfns), timestamp(time) {
         }
 };
 

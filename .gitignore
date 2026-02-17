@@ -3,3 +3,5 @@
 *.txt
 *.out
 settings.json
+*.db
+*.sqlite

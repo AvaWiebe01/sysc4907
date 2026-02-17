@@ -24,18 +24,18 @@ bool sendData(RoadData data) {
 
     // Convert floats to strings with 5 decimals of precision
     std::stringstream stream;
-    std::string x_coord_str;
-    std::string y_coord_str;
+    std::string lat_str;
+    std::string lng_str;
     std::string roughness_str;
     std::string timestamp_str;
 
-    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.x_coord;
-    x_coord_str = stream.str();
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.lat;
+    lat_str = stream.str();
     stream.str("");
     stream.clear();
 
-    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.y_coord;
-    y_coord_str = stream.str();
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.lng;
+    lng_str = stream.str();
     stream.str("");
     stream.clear();
 
@@ -53,8 +53,8 @@ bool sendData(RoadData data) {
 
     // Format for a proper POST request
     std::string fields =
-        "x_coord=" + x_coord_str +
-        "&y_coord=" + y_coord_str +
+        "lat=" + lat_str +
+        "&lng=" + lng_str +
         "&roughness=" + roughness_str +
         "&timestamp=" + timestamp_str;
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields.c_str());
@@ -72,29 +72,29 @@ bool sendData(RoadData data) {
 }
 
 // Receive road data from the RoadMonitor API using coordinates
-// x_coord: longitude
-// y_coord: latitude
+// lat: latitude
+// lng: longitude
 // radius: positive integer that defines the radius of the road conditions to check. Default 100
 // start: integer start of the date range to search in UNIX epoch milliseconds. Default 0 (no date range)
 // end: integer end of the date range to search in UNIX epoch milliseconds. Default 0 (no date range)
-RoadData recvDataCoords(float x_coord, float y_coord, int radius = 200, int64_t start = 0, int64_t end = 0) {
+RoadData recvDataCoords(float lat, float lng, int radius = 200, int64_t start = 0, int64_t end = 0) {
     CURL *curl_handle;
     CURLcode response;
     curl_handle = curl_easy_init();
 
     // Convert floats to strings
     std::stringstream stream;
-    std::string x_coord_str;
-    std::string y_coord_str;
+    std::string lat_str;
+    std::string lng_str;
     std::string radius_str;
 
-    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << x_coord;
-    x_coord_str = stream.str();
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << lat;
+    lat_str = stream.str();
     stream.str("");
     stream.clear();
 
-    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << y_coord;
-    y_coord_str = stream.str();
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << lng;
+    lng_str = stream.str();
     stream.str("");
     stream.clear();
 
@@ -102,8 +102,8 @@ RoadData recvDataCoords(float x_coord, float y_coord, int radius = 200, int64_t 
     
     // Construct proper URL with coordinates
     std::string url = "http://www.roadmonitor.online:8000/conditions/coords/"
-        + "?x_coord=" + x_coord_str
-        + "&y_coord=" + y_coord_str
+        + "?lat=" + lat_str
+        + "&lng=" + lng_str
         + "&radius=" + radius_str;
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
     
