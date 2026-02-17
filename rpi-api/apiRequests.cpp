@@ -4,29 +4,12 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <chrono>
+#include <ctime>
+#include "apiRequests.h"
 #include <curl/curl.h>
 
-#define FLOAT_PRECISION 5
-
-// Format for sending and receiving condition data from API
-// If this class is changed, the class "RoadData" in /server-api/main.py must also be updated.
-class RoadData {
-    public:
-        float x_coord;
-        float y_coord;
-        float iri;
-
-        // Default constructor
-        RoadData() {
-            x_coord = 0.0;
-            y_coord = 0.0;
-            iri = 99999.9;
-        }
-
-        // Parametrized constructor
-        RoadData(float x, float y, float roughness) : x_coord(x), y_coord(y), iri(roughness) {
-        }
-};
+#define FLOAT_PRECISION 6
 
 /******** FUNCTIONS TO INTERACT WITH ROADMONITOR API ********/
 
@@ -43,7 +26,8 @@ bool sendData(RoadData data) {
     std::stringstream stream;
     std::string x_coord_str;
     std::string y_coord_str;
-    std::string iri_str;
+    std::string roughness_str;
+    std::string timestamp_str;
 
     stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.x_coord;
     x_coord_str = stream.str();
@@ -55,8 +39,15 @@ bool sendData(RoadData data) {
     stream.str("");
     stream.clear();
 
-    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.iri;
-    iri_str = stream.str();
+    stream << std::fixed << std::setprecision(FLOAT_PRECISION) << data.roughness;
+    roughness_str = stream.str();
+    stream.str("");
+    stream.clear();
+
+    auto timestamp_duration = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp.time_since_epoch());
+    int64_t millis_since_epoch = timestamp_duration.count();
+    stream << millis_since_epoch;
+    std::string timestamp_str = stream.str();
     stream.str("");
     stream.clear();
 
@@ -64,7 +55,8 @@ bool sendData(RoadData data) {
     std::string fields =
         "x_coord=" + x_coord_str +
         "&y_coord=" + y_coord_str +
-        "&iri=" + iri_str;
+        "&roughness=" + roughness_str +
+        "&timestamp=" + timestamp_str;
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields.c_str());
 
     std::cout << "Performing cURL POST request...\n";
@@ -80,7 +72,12 @@ bool sendData(RoadData data) {
 }
 
 // Receive road data from the RoadMonitor API using coordinates
-RoadData recvDataCoords(float x_coord, float y_coord) {
+// x_coord: longitude
+// y_coord: latitude
+// radius: positive integer that defines the radius of the road conditions to check. Default 100
+// start: integer start of the date range to search in UNIX epoch milliseconds. Default 0 (no date range)
+// end: integer end of the date range to search in UNIX epoch milliseconds. Default 0 (no date range)
+RoadData recvDataCoords(float x_coord, float y_coord, int radius = 200, int64_t start = 0, int64_t end = 0) {
     CURL *curl_handle;
     CURLcode response;
     curl_handle = curl_easy_init();
@@ -89,6 +86,7 @@ RoadData recvDataCoords(float x_coord, float y_coord) {
     std::stringstream stream;
     std::string x_coord_str;
     std::string y_coord_str;
+    std::string radius_str;
 
     stream << std::fixed << std::setprecision(FLOAT_PRECISION) << x_coord;
     x_coord_str = stream.str();
@@ -99,9 +97,14 @@ RoadData recvDataCoords(float x_coord, float y_coord) {
     y_coord_str = stream.str();
     stream.str("");
     stream.clear();
+
+    radius_str = std::to_string(radius);
     
     // Construct proper URL with coordinates
-    std::string url = "http://www.roadmonitor.online:8000/conditions/coords/" + x_coord_str + "/" + y_coord_str;
+    std::string url = "http://www.roadmonitor.online:8000/conditions/coords/"
+        + "?x_coord=" + x_coord_str
+        + "&y_coord=" + y_coord_str
+        + "&radius=" + radius_str;
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
     
     std::cout << "Performing cURL GET request...\n";
@@ -113,12 +116,6 @@ RoadData recvDataCoords(float x_coord, float y_coord) {
     
     curl_easy_cleanup(curl_handle);
     
-    RoadData data;
-    return data;
-}
-
-// Receive road data from the RoadMonitor API using streetname
-RoadData recvDataStreetname(std::string street_name) {
     RoadData data;
     return data;
 }
@@ -137,10 +134,7 @@ int main() {
     // RoadData testData_2(32.0, 64.0, 0.666);
     // sendData(testData_2);
 
-    // RoadData returnData_1 = recvDataStreetname("Main");
-    // std::cout << std::to_string(testData_1.iri);
-
-    RoadData returnData_2 = recvDataCoords(32.0, 64.0);
+    RoadData returnData = recvDataCoords(32.0, 64.0);
     // std::cout << std::to_string(testData_2.iri); // 
 
     curl_global_cleanup();
