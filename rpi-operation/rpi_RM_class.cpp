@@ -36,7 +36,8 @@ class RoadMonitor{
 	
 	//SharedData object to communicate with GUI
 	SharedData sharedmem;
-	
+	PyObject* pModule;
+
 	//used to manage access to the work queue
 	mutex mtx;				
 	condition_variable cv;
@@ -50,8 +51,9 @@ class RoadMonitor{
 	public:
 	string name;
 	
-	RoadMonitor(const string iname){ //constructor
+	RoadMonitor(const string iname, PyObject* iModule){ //constructor
 		this->name = iname;
+		this->pModule = iModule;
 	}
 	
 	int record_data(const string iname){
@@ -90,7 +92,7 @@ class RoadMonitor{
 			}
 
 			recorded_point newPoint; //struct that all 
-			//i = i+1.1;
+			
 			//get new point from arduino
 			/*********/
 			char buffer[11];
@@ -176,7 +178,7 @@ class RoadMonitor{
 			exitValue = sharedmem.exited();
 
 			if (exitValue == true){
-				exit(0);
+				break; // break out of loop
 			}
 
 			//reset recorded matrix
@@ -296,7 +298,7 @@ class RoadMonitor{
 				PyTuple_SetItem(pArgs, 2, step);
 				
 				//call IRI calculator
-				PyObject* pResult = PyObject_CallObject(iriCalculator, pArgs);
+				PyObject* pResult = PyObject_CallObject(pModule, pArgs);
 				Py_DECREF(pArgs); //deallocate argument tuple
 
 				//process results
