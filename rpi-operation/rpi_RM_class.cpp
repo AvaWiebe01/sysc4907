@@ -12,8 +12,7 @@
 #include "ArduinoReadSerial.cpp"
 #include <ctime>
 #include <fstream>
-#include<cmath>
-#include <Python.h>
+#include <cmath>
 #include "./mainGUI/sharedMemComms.cpp"
 #include "GPSWrapper.cpp"
 
@@ -37,6 +36,9 @@ class RoadMonitor{
 	//SharedData object to communicate with GUI
 	SharedData sharedmem;
 	
+	//set up GPS
+	GPSWrapper gps;
+
 	//used to manage access to the work queue
 	mutex mtx;				
 	condition_variable cv;
@@ -50,8 +52,9 @@ class RoadMonitor{
 	public:
 	string name;
 	
-	RoadMonitor(const string iname){ //constructor
+	RoadMonitor(const string iname, PyObject* iModule){ //constructor
 		this->name = iname;
+		this->pModule = iModule;
 	}
 	
 	int record_data(const string iname){
@@ -90,7 +93,7 @@ class RoadMonitor{
 			}
 
 			recorded_point newPoint; //struct that all 
-			//i = i+1.1;
+			
 			//get new point from arduino
 			/*********/
 			char buffer[11];
@@ -176,7 +179,7 @@ class RoadMonitor{
 			exitValue = sharedmem.exited();
 
 			if (exitValue == true){
-				exit(0);
+				break; // break out of loop
 			}
 
 			//reset recorded matrix
@@ -285,27 +288,9 @@ class RoadMonitor{
 				{
 					segment[j][0] = distance_between_points*j;
 				}
-				PyObject* roadMatrix = PyUnicode_DecodeFSDefault(segment); //matrix of road profile
-				PyObject* startPos = PyUnicode_DecodeFSDefault(0); //start at pos 0
-				PyObject* step = PyUnicode_DecodeFSDefault(0); //treat as no overlap
-
-				//create argument tuple
-				PyObject* pArgs = PyTuple_New(3);
-				PyTuple_SetItem(pArgs, 0, roadMatrix);
-				PyTuple_SetItem(pArgs, 1, startPos);
-				PyTuple_SetItem(pArgs, 2, step);
 				
-				//call IRI calculator
-				PyObject* pResult = PyObject_CallObject(iriCalculator, pArgs);
-				Py_DECREF(pArgs); //deallocate argument tuple
 
-				//process results
-				if (pResult == nullptr) {
-					//data is useless restart loop
-					continue;
-				}
-				const char* resultStr = PyUnicode_AsUTF8(pResult);
-				currentIRI = strtof(resultStr); //change to be output of the python code.
+				currentIRI = ; //change to be output of the python code.
 
 				//reset counter i
 				i = 0;
@@ -328,45 +313,10 @@ int main(){
 	cin>>filename;
 	filename = filename + ".txt";
 
-	//initialize python for IRI calculations
-	Py_Initialize();
-
-	// Set PYTHONPATH to the current directory
-    PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append('.')");
-
-	//prepare python function object for repeated use
-	//choose the IRI calculation file
-	PyObject* pName = PyUnicode_DecodeFSDefault("IRI");
-	//import the file as a module
-	PyObject* pModule = PyImport_Import(pName);
-
-	// deallocate pName as it is no longer needed.
-	Py_DECREF(pName);
-
-	//ensure the python module exists
-	if (pModule != nullptr) {
-		//load target function from python module
-		PyObject* iriCalculator = PyObject_GetAttrString(pModule,"iri");
-		//ensure the specified function exists
-		if (iriCalculator && PyCallable_Check(iriCalculator)){
-			//function loaded successfully
-		}
-		else{
-			cerr<<"Fatal error: Could not load IRI calculator python function";
-			exit(1);
-		}
-	}
-	else{
-		cerr<<"Fatal error: Could not load IRI calculator python module";
-		exit(1);
-	}
-
-	//set up GPS
-	GPSWrapper();
-
 	//create road monitor object
 	RoadMonitor rm("rm");
+
+	//system("python3 XXXX.py");
 
 	//start threads
 	thread record(&RoadMonitor::record_data, &rm, "data_recorder");
