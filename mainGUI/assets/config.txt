@@ -1,4 +1,0 @@
-Vehicle Type: SUV
-Vehicle Year: 2021
-Vehicle Class: LUXURY
-Data Collection: ON
