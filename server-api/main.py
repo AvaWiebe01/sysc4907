@@ -14,10 +14,10 @@ class RoadData(pydantic.BaseModel):
 
 # Format for data points in the database
 class DataPoint(sqlmodel.SQLModel, table=True):
-    lat: float = sqlmodel.Field(..., ge=-90, le=90)
-    lng: float = sqlmodel.Field(..., ge=-180, le=180)
-    roughness: float = sqlmodel.Field(..., ge=0)
-    timestamp: float = sqlmodel.Field(..., ge=0)
+    lat: float = sqlmodel.Field(..., ge=-90, le=90, description="lat must be within bounds [-90, 90]")
+    lng: float = sqlmodel.Field(..., ge=-180, le=180, description="lng must be within bounds [-180, 180]")
+    roughness: float = sqlmodel.Field(..., ge=0, description="roughness must be non-negative")
+    timestamp: float = sqlmodel.Field(..., ge=0, description="timestamp (in unix epoch milliseconds) must be non-negative")
 
 # Create API instance
 app = FastAPI()
