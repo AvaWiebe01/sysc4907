@@ -5,7 +5,7 @@
 #include <cstdlib> // For rand() and srand()
 #include <ctime>   // For time()
 
-class SharedData
+class SharedMatrix
 {
     /*
     Please include the following libraries to use this class:
@@ -26,19 +26,19 @@ class SharedData
     */
     
     struct dataStruct {
-        float values[3]; //DO NOT CHANGE THIS
+        float values[151][2]; //DO NOT CHANGE THIS
     };
 
     //DO NOT CHANGE THESE
-    const char* shm_name = "shared_sensor_readings";
-    const char* sem_name = "access_readings_sem";
+    const char* shm_name = "shared_road_matrix";
+    const char* sem_name = "access_matrix_sem";
     sem_t* semaphore;
     dataStruct* data;
     
 
     public:
 
-    SharedData() {
+    SharedMatrix() {
         int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
         ftruncate(shm_fd, sizeof(dataStruct));
         data = (dataStruct*)mmap(0, sizeof(dataStruct), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);    
@@ -46,27 +46,19 @@ class SharedData
     }
 
     //Writes the new values to shared_memory
-    void send_data(float time_interval, float sensor_readings, float road_rating) {
+    void send_data(float matrix[151][2]) {
         sem_wait(semaphore);
-        data->values[0] = time_interval;
-        data->values[1] = sensor_readings;
-        data->values[2] = road_rating;
+        for(int i = 0, i <= 149, i++){
+            data->values[i][0] = matrix[i][0];
+            data->values[i][0] = matrix[i][1];
+        }
+        data->values[150][0] = 1; // update ready flag
         sem_post(semaphore);
     }
-
 };
 
-/*
-//This is a test program. You can delete main if you want, or just copy th class into another c++ file.
-int main() {
-    SharedData shared_variable = SharedData();
 
-    std::srand(std::time(nullptr));
 
-    while (true) {
-        shared_variable.send_data(0.1f,(static_cast<float>(std::rand() % 41) - 20.0f), (static_cast<float>(std::rand() % 5) + 1));
-        usleep(50000); // Sleep 0.05s
-    }
-    return 0;
-}
-*/
+
+
+

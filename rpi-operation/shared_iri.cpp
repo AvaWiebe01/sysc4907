@@ -5,7 +5,7 @@
 #include <cstdlib> // For rand() and srand()
 #include <ctime>   // For time()
 
-class SharedData
+class SharedIRI
 {
     /*
     Please include the following libraries to use this class:
@@ -26,19 +26,19 @@ class SharedData
     */
     
     struct dataStruct {
-        float values[3]; //DO NOT CHANGE THIS
+        float values[2]; //DO NOT CHANGE THIS
     };
 
     //DO NOT CHANGE THESE
-    const char* shm_name = "shared_sensor_readings";
-    const char* sem_name = "access_readings_sem";
+    const char* shm_name = "shared_iri";
+    const char* sem_name = "access_iri_sem";
     sem_t* semaphore;
     dataStruct* data;
     
 
     public:
 
-    SharedData() {
+    SharedIRI() {
         int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
         ftruncate(shm_fd, sizeof(dataStruct));
         data = (dataStruct*)mmap(0, sizeof(dataStruct), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);    
@@ -46,27 +46,19 @@ class SharedData
     }
 
     //Writes the new values to shared_memory
-    void send_data(float time_interval, float sensor_readings, float road_rating) {
+    float read_data() {
+        float result = -1;
         sem_wait(semaphore);
-        data->values[0] = time_interval;
-        data->values[1] = sensor_readings;
-        data->values[2] = road_rating;
+        if(data->values[1] == 1.0){
+            result = data->values[1] = 0.0;
+        }
         sem_post(semaphore);
+        return result;
     }
-
 };
 
-/*
-//This is a test program. You can delete main if you want, or just copy th class into another c++ file.
-int main() {
-    SharedData shared_variable = SharedData();
 
-    std::srand(std::time(nullptr));
 
-    while (true) {
-        shared_variable.send_data(0.1f,(static_cast<float>(std::rand() % 41) - 20.0f), (static_cast<float>(std::rand() % 5) + 1));
-        usleep(50000); // Sleep 0.05s
-    }
-    return 0;
-}
-*/
+
+
+

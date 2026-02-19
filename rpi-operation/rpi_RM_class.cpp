@@ -13,8 +13,10 @@
 #include <ctime>
 #include <fstream>
 #include <cmath>
-#include "./mainGUI/sharedMemComms.cpp"
+#include "../mainGUI/sharedMemComms.cpp"
+#include "shared_matrix.cpp"
 #include "GPSWrapper.cpp"
+#include "../rpi-api/apiRequests.cpp"
 
 
 #define GPS_TIMEOUT 50000000 //timeout in x for GPS Hat
@@ -34,8 +36,10 @@ class RoadMonitor{
 	queue<recorded_point> work;
 	
 	//SharedData object to communicate with GUI
-	SharedData sharedmem;
-	
+	SharedData sharedmem;	
+	SharedMatrix sharedmatrix;
+	SharedIRI sharediri;
+ 	
 	//set up GPS
 	GPSWrapper gps;
 
@@ -279,25 +283,41 @@ class RoadMonitor{
 
 				/*  BUILD PYTHON ARGUMENTS    */
 				//get distance between start and end position in meters
-				float distance = segment_distance(s_lat, s_lon, e_lat, e_lon);
+				float stmDistance = segment_distance(s_lat, s_lon, mp_lat, mp_lon);
+				float mteDistance = segment_distance(mp_lat, mp_lon, e_lat, e_lon);
 
 				//get spacing between recorded points -> i is the number of points recorded
 				//assuming most points recorded successfully
-				float distance_between_points = distance / i;
-				for (int j = 0; j <=150; j++)
+				float distance_between_stm = stmDistance / (i/2);
+				for (int j = 0; j < 75; j++)
 				{
-					segment[j][0] = distance_between_points*j;
+					segment[j][0] = distance_between_stm*j;
+				}
+
+				float distance_between_mte = mteDistance / (i/2);
+				for (int j = 0; j < 75	; j++)
+				{
+					segment[j+75][0] = stmDistance+distance_between_mte*j;
 				}
 				
-
-				currentIRI = ; //change to be output of the python code.
-
+				//give to python using shared memory
+				sharedmatrix.send_data(segment);
+				//wait for IRI back
+				float received = -1;
+				while(received < 0){
+					received = sharediri.read_data(); //returns -1 if not ready yet
+				}
+				//update current IRI reading
+				currentIRI = received; //change to be output of the python code.
+				
 				//reset counter i
 				i = 0;
 			}
 
 			//send to database
 			/**********/
+			RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
+			sendData(toDatabase);
 
 		}
 		return 0;

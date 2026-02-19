@@ -70,8 +70,8 @@ class SharedResult:
             
         self.size = 8 #for 2 floats
             
-        self.sem = posix_ipc.Semaphore(SEMR_NAME, posix_ipc.O_CREX, initial_value=1)
-        self.shm = posix_ipc.SharedMemory(SHMR_NAME, posix_ipc.O_CREX, size=self.size)
+        self.sem = posix_ipc.Semaphore(SEMR_NAME, posix_ipc.O_CREAT, initial_value=1)
+        self.shm = posix_ipc.SharedMemory(SHMR_NAME, posix_ipc.O_CREAT, size=self.size)
         self.map = mmap.mmap(self.shm.fd, self.size)
         self.shm.close_fd()
         self.view = np.ndarray((2,), dtype=np.float32, buffer=self.map)
@@ -118,8 +118,9 @@ class SharedResult:
 
 
 if __name__ == "__main__":
-    sharedMemRoadMatrix = SharedRoadMatrix()
     sharedIri = SharedResult() 
+    sharedMemRoadMatrix = SharedRoadMatrix()
+    
     
     while(True):
         readings = sharedMemRoadMatrix.read()
@@ -127,3 +128,4 @@ if __name__ == "__main__":
             
             result = iriCalculator.iri(readings[0:149],0,0)
             sharedIri.write(result)
+    
