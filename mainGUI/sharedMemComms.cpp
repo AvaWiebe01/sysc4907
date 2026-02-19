@@ -73,7 +73,7 @@ class SharedData
 
 };
 
-
+/*
 //This is a test program. You can delete main if you want, or just copy th class into another c++ file.
 int main() {
     SharedData shared_variable = SharedData();
@@ -87,3 +87,4 @@ int main() {
     shared_variable.cleanup();
     return 0;
 }
+*/
