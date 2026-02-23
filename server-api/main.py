@@ -1,6 +1,7 @@
 from typing import Union
 
 from fastapi import FastAPI
+from fastapi import HTTPException
 import pydantic
 import sqlmodel
 
@@ -14,10 +15,11 @@ class RoadData(pydantic.BaseModel):
 
 # Format for data points in the database
 class DataPoint(sqlmodel.SQLModel, table=True):
-    lat: float = sqlmodel.Field(..., ge=-90, le=90, description="lat must be within bounds [-90, 90]")
-    lng: float = sqlmodel.Field(..., ge=-180, le=180, description="lng must be within bounds [-180, 180]")
+    id: float | None = sqlmodel.Field(default=None, primary_key=True)
+    lat: float = sqlmodel.Field(..., index=True, ge=-90, le=90, description="lat must be within bounds [-90, 90]")
+    lng: float = sqlmodel.Field(..., index=True, ge=-180, le=180, description="lng must be within bounds [-180, 180]")
     roughness: float = sqlmodel.Field(..., ge=0, description="roughness must be non-negative")
-    timestamp: float = sqlmodel.Field(..., ge=0, description="timestamp (in unix epoch milliseconds) must be non-negative")
+    timestamp: float = sqlmodel.Field(..., index=True, ge=0, description="timestamp (in unix epoch milliseconds) must be non-negative")
 
 # Create API instance
 app = FastAPI()
@@ -25,10 +27,10 @@ app = FastAPI()
 # Start the database engine instance (creates database file if it doesn't exist)
 sqlite_file_name = "roadmonitor-data-points.db"
 sqlite_url = f"sqlite:///database/{sqlite_file_name}"
-engine = create_engine(sqlite_url, echo=True)
+engine = sqlmodel.create_engine(sqlite_url, echo=True)
 
 # Create a table with DataPoint if doesn't already exist
-SQLModel.metadata.create_all(engine)
+sqlmodel.SQLModel.metadata.create_all(engine)
 
 # Root endpoint
 @app.get("/")
@@ -41,6 +43,10 @@ def post_road_data(data: RoadData):
 
     # data point is validated by the pydantic model
     # Store received point in server's local database
+    with sqlmodel.Session(engine) as session:
+        new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp)
+        session.add(new_datapoint)
+        session.commit()
 
     return {"Response": "Data received!"}
 
@@ -53,7 +59,7 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
         raise HTTPException(status_code=400, detail="lat (latitude) must be within the bounds [-90, 90].")
 
     # lng (longitude) must be within [-180, 180]
-    if (lng < -180 or  > 180):
+    if (lng < -180 or lng > 180):
         raise HTTPException(status_code=400, detail="lng (longitude) must be within the bounds [-180, 180].")
 
     # radius must be a positive integer
