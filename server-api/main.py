@@ -2,6 +2,7 @@ from typing import Union
 
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import Depends
 import pydantic
 import sqlmodel
 
@@ -39,7 +40,7 @@ def read_root():
 
 # Send data to the database (used from RoadMonitor sensor device only)
 @app.post("/data")
-def post_road_data(data: RoadData):
+def post_road_data(data: RoadData = Depends()):
 
     # data point is validated by the pydantic model
     # Store received point in server's local database
