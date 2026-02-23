@@ -3,5 +3,7 @@
 *.txt
 *.out
 settings.json
+*.db
+*.sqlite
 kivyenv
 __pycache__
