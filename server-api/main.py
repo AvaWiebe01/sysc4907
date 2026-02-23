@@ -16,7 +16,7 @@ class RoadData(pydantic.BaseModel):
 
 # Format for data points in the database
 class DataPoint(sqlmodel.SQLModel, table=True):
-    id: float | None = sqlmodel.Field(default=None, primary_key=True)
+    id: int | None = sqlmodel.Field(default=None, primary_key=True)
     lat: float = sqlmodel.Field(..., index=True, ge=-90, le=90, description="lat must be within bounds [-90, 90]")
     lng: float = sqlmodel.Field(..., index=True, ge=-180, le=180, description="lng must be within bounds [-180, 180]")
     roughness: float = sqlmodel.Field(..., ge=0, description="roughness must be non-negative")
@@ -48,6 +48,7 @@ def post_road_data(data: RoadData = Depends()):
         new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp)
         session.add(new_datapoint)
         session.commit()
+        print("Point ID:", new_datapoint.id)
 
     return {"Response": "Data received!"}
 
