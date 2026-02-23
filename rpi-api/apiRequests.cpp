@@ -123,6 +123,7 @@ RoadData recvDataCoords(float lat, float lng, int radius = 200, int64_t start = 
 /******** END OF PROVIDED FUNCTIONS ********/
 
 // Only use for testing - otherwise, make use of the API communication functions above
+/*
 int main() {
     // curl_global_init(CURL_GLOBAL_ALL);
 
@@ -140,3 +141,4 @@ int main() {
     curl_global_cleanup();
     return 0;
 }
+*/
