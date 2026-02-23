@@ -48,9 +48,9 @@ class SharedMatrix
     //Writes the new values to shared_memory
     void send_data(float matrix[151][2]) {
         sem_wait(semaphore);
-        for(int i = 0, i <= 149, i++){
+        for(int i = 0; i <= 149; i++){
             data->values[i][0] = matrix[i][0];
-            data->values[i][0] = matrix[i][1];
+            data->values[i][1] = matrix[i][1];
         }
         data->values[150][0] = 1; // update ready flag
         sem_post(semaphore);

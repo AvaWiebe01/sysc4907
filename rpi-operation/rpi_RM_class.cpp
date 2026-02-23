@@ -15,8 +15,11 @@
 #include <cmath>
 #include "../mainGUI/sharedMemComms.cpp"
 #include "shared_matrix.cpp"
+#include "shared_iri.cpp"
 #include "GPSWrapper.cpp"
 #include "../rpi-api/apiRequests.cpp"
+
+float segment_distance(float start_lat, float start_lon, float end_lat, float end_lon);
 
 
 #define GPS_TIMEOUT 50000000 //timeout in x for GPS Hat
@@ -56,9 +59,8 @@ class RoadMonitor{
 	public:
 	string name;
 	
-	RoadMonitor(const string iname, PyObject* iModule){ //constructor
+	RoadMonitor(const string iname){ //constructor
 		this->name = iname;
-		this->pModule = iModule;
 	}
 	
 	int record_data(const string iname){
@@ -89,7 +91,7 @@ class RoadMonitor{
 		
 		//get data
 		//float i = 1.1; test value
-		double latlon[2] = {0.0, 0.0}
+		double latlon[2] = {0.0, 0.0};
 		while(true){ // loop until program finish
 			//end program
 			if (exitValue == true){
@@ -316,8 +318,8 @@ class RoadMonitor{
 
 			//send to database
 			/**********/
-			RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
-			sendData(toDatabase);
+			//RoadData toDatabase(mp_lat, mp_lon, currentIRI/*, newPoint.timestamp*/);
+			//sendData(toDatabase);
 
 		}
 		return 0;

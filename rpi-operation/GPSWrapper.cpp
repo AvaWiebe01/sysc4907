@@ -10,7 +10,7 @@ class GPSWrapper{
     int gps_timeout = 150000; // microseconds
 
     public:
-    gpsWrapper(){
+    GPSWrapper(){
         gps_open("localhost", "2947", &gps_data);
         gps_stream(&gps_data, WATCH_ENABLE | WATCH_JSON, NULL);
     }
@@ -20,7 +20,7 @@ class GPSWrapper{
         //returns false if no new data arrived within gps_timeout in μs
         if(gps_waiting(&gps_data, gps_timeout)){ 
             //read gps
-            if (gps_read(&gps_data) == -1)
+            if (gps_read(&gps_data, NULL, 0) == -1)
             {
                 cerr<<"GPS read error";
                 return 1;
