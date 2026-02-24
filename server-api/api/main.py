@@ -1,5 +1,4 @@
 from typing import Union
-
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Depends
@@ -48,7 +47,7 @@ def post_road_data(data: RoadData = Depends()):
         new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp)
         session.add(new_datapoint)
         session.commit()
-        print("Point ID:", new_datapoint.id)
+        print("New Point ID:", new_datapoint.id)
 
     return {"Response": "Data received!"}
 
