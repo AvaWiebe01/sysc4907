@@ -1,7 +1,9 @@
 .vscode
 .venv
-*.txt
+rpi-operation/*.txt
 *.out
 settings.json
+*.db
+*.sqlite
 kivyenv
 __pycache__

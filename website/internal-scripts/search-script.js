@@ -14,7 +14,9 @@ addEventListener("DOMContentLoaded", (event) => {
     myPage.coordinateDisplay = document.getElementById('coordinate-display');
     myPage.searchButton = document.getElementById('search-button');
     myPage.map = null;
+    myPage.markerLayer = null;
     myPage.selectedCoords = L.latLng(0,0);
+    myPage.icon = null;
 });
 
 // When search button is clicked
@@ -63,14 +65,27 @@ function searchForConditions(ev) {
 
 // Runs after map is fully initialized - sets up all other variables and events for the search functionality
 function initializePage() {
-
     displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
+
+    myPage.icon = L.icon({
+        iconUrl: '../images/mapMarker.png',
+        iconSize: [50, 56],
+        iconAnchor: [25, 47],
+        shadowUrl: '../images/mapMarkerShadow.png',
+        shadowSize: [50, 56],
+        shadowAnchor: [25, 47]
+    });
+    myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
 
     // Update selected coordinates on map click
     myPage.map.on('click', function(ev) {
         console.log("Map clicked, setting new coordinates");
         myPage.selectedCoords = myPage.map.mouseEventToLatLng(ev.originalEvent);
         displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
+
+        // delete old marker and add new one 
+        myPage.markerLayer.remove();
+        myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
     });
 
     // Search and display on search button press
