@@ -5,6 +5,7 @@ from fastapi import Depends
 import pydantic
 import sqlmodel
 import requests
+import json
 
 ### These constants must be the same as 
 IQ_SEARCH_RADIUS = 100
@@ -49,14 +50,16 @@ def read_root():
 def post_road_data(data: RoadData = Depends()):
 
     # get the street name for this point from LocationIQ Nearest API - LONGITUDE BEFORE LATITUDE
-    url = f"""https://us1.locationiq.com/v1/nearest/driving/
-           {data.lng:.7f},
-           {data.lat:.7f}
-           ?radiuses={IQ_SEARCH_RADIUS}
-           &key={IQ_TOKEN}
-           &number=1"""
+    url = (f"https://us1.locationiq.com/v1/nearest/driving/"
+           f"{data.lng:.7f},"
+           f"{data.lat:.7f}"
+           f"?radiuses={IQ_SEARCH_RADIUS}"
+           f"&key={IQ_TOKEN}"
+           f"&number=1")
+    print(url)
     resp = requests.get(url)
-    datapoint_streetname = resp.waypoints[0].name if (resp.waypoints[0].name != "") else UNNAMED_ROAD_STRING
+    print(json.dumps(resp.json(), indent=4))
+    datapoint_streetname = "test" if (True) else UNNAMED_ROAD_STRING
     print("New point streetname:", datapoint_streetname)
 
     # data point is validated by the pydantic model
