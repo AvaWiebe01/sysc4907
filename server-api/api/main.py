@@ -57,7 +57,8 @@ def post_road_data(data: RoadData = Depends()):
            f"&key={IQ_TOKEN}"
            f"&number=1")
     print(url)
-    
+
+    # if we cannot find a nearby road, reject the data
     try:
         resp = requests.get(url)
         resp_dict = resp.json()
