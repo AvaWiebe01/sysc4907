@@ -1,5 +1,4 @@
 from typing import Union
-
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Depends
@@ -27,7 +26,7 @@ app = FastAPI()
 
 # Start the database engine instance (creates database file if it doesn't exist)
 sqlite_file_name = "roadmonitor-data-points.db"
-sqlite_url = f"sqlite:///database/{sqlite_file_name}"
+sqlite_url = f"sqlite:///api/database/{sqlite_file_name}"
 engine = sqlmodel.create_engine(sqlite_url, echo=True)
 
 # Create a table with DataPoint if doesn't already exist
@@ -48,7 +47,7 @@ def post_road_data(data: RoadData = Depends()):
         new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp)
         session.add(new_datapoint)
         session.commit()
-        print("Point ID:", new_datapoint.id)
+        print("New Point ID:", new_datapoint.id)
 
     return {"Response": "Data received!"}
 
