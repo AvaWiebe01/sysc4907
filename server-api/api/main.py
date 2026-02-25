@@ -99,7 +99,30 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
         raise HTTPException(status_code=400, detail="start cannot be after end.")
 
     # select specified data from RoadMonitor database
+    streetname = None
+    num_points = None
+    points_variance = None
+    roughness = None
 
-    return {"lat": lat, "lng": lng}
+    # return the requested data to user
+        # lat: the requested latitude
+        # lng: the requested longitude
+        # radius: the requested search radius
+        # start: the requested time range start in UNIX epoch milliseconds
+        # end: the requested time range end in UNIX epoch milliseconds
+        # streetname: derived from locationIQ, roughness only pertains to data collected on this road
+        # num_points: the number of data points used in calculating roughness
+        # points_variance: the variance of the data points used in calculating roughness - higher = less reliable estimate
+        # roughness: the roughness of the street, determined from all data points within the radius and time range
+    return {
+        "lat": lat,
+        "lng": lng,
+        "radius": radius,
+        "start": start,
+        "end": end,
+        "streetname": streetname,
+        "num_points": num_points,
+        "points_variance": points_variance,
+        "roughness": roughness}
 
 
