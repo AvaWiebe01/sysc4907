@@ -58,8 +58,8 @@ def post_road_data(data: RoadData = Depends()):
            f"&number=1")
     print(url)
     resp = requests.get(url)
-    print(json.dumps(resp.json(), indent=4))
-    datapoint_streetname = "test" if (True) else UNNAMED_ROAD_STRING
+    resp_dict = resp.json()
+    datapoint_streetname = resp_dict["waypoints"][0]["name"] if (resp_dict["waypoints"][0]["name"] != "") else UNNAMED_ROAD_STRING
     print("New point streetname:", datapoint_streetname)
 
     # data point is validated by the pydantic model
