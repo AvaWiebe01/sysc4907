@@ -1,33 +1,85 @@
 const COORD_PRECISION = 5
 const INITIAL_ZOOM = 16;
 const MAX_ZOOM = 20;
-const SEARCH_RADIUS = 100;
-const UNNAMED_ROAD_STRING = "Unnamed"
-const IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc" // locationIQ API token
+const UNNAMED_ROAD_STRING = "Unnamed";
+const DEFAULT_TIMERANGE_START = "2000-01-01T00:00";
+const IQ_SEARCH_RADIUS = 100;
+const IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc"; // locationIQ API token
 
 // Holds all global variables (except constants)
-var myPage = Object();
+let myPage = Object();
 
-// Create document objects / variables once DOM is loaded
+// Create document objects / variables / eventListeners once DOM is loaded
 addEventListener("DOMContentLoaded", (event) => {
+    myPage.currentDate = new Date();
+    myPage.currentDate.setMinutes(myPage.currentDate.getMinutes() - myPage.currentDate.getTimezoneOffset()); // convert to local time
+    myPage.currentDate = myPage.currentDate.toISOString().slice(0,-8); // ignore seconds, millis, timezone (UTC)
+
+    // Get references to page elements
     myPage.conditionDisplay = document.getElementById('condition-display');
     myPage.coordinateDisplay = document.getElementById('coordinate-display');
+    myPage.radiusDisplay = document.getElementById('radius-display');
+    myPage.timerangeStart = document.getElementById('timerange-start');
+    myPage.timerangeEnd = document.getElementById('timerange-end');
+    myPage.radiusSlider = document.getElementById('radius-slider');
     myPage.searchButton = document.getElementById('search-button');
+
+    // Delcare internal variables for page/search parameters
     myPage.map = null;
     myPage.markerLayer = null;
     myPage.selectedCoords = L.latLng(0,0);
+    myPage.selectedRadius = myPage.radiusSlider.value;
+    myPage.selectedTimerange = new Array(DEFAULT_TIMERANGE_START, myPage.currentDate);
     myPage.icon = null;
+
+    // Update radius when slider is moved
+    myPage.radiusSlider.addEventListener("input", updateSearchRadius);
+
+    // Update timerange when date is selected
+    myPage.timerangeStart.addEventListener("input", updateSearchTimerange);
+    myPage.timerangeEnd.addEventListener("input", updateSearchTimerange);
+
 });
+
+// When radius slider is moved
+function updateSearchRadius(ev) {
+    myPage.selectedRadius = myPage.radiusSlider.value;
+    myPage.radiusDisplay.innerHTML = "Search Radius:<br>" + myPage.selectedRadius + "m";
+    console.log("Radius updated");
+}
+
+function updateSearchTimerange(ev) {
+    myPage.selectedTimerange[0] = myPage.timerangeStart.value;
+    myPage.selectedTimerange[1] = myPage.timerangeEnd.value;
+    console.log("Timerange updated")
+}
 
 // When search button is clicked
 function searchForConditions(ev) {
     console.log("Beginning search for coordinates: " + myPage.selectedCoords.lat.toFixed(COORD_PRECISION) + ", " + myPage.selectedCoords.lng.toFixed(COORD_PRECISION))
     
+    // Convert user's local timerange into UNIX epoch
+    let epochStart = new Date(myPage.selectedTimerange[0] + "Z");
+    epochStart.setMinutes(epochStart.getMinutes() + epochStart.getTimezoneOffset());
+    let epochEnd = new Date(myPage.selectedTimerange[1] + "Z");
+    epochEnd.setMinutes(epochEnd.getMinutes() + epochEnd.getTimezoneOffset());
+
+    let epochTimerange = new Array(epochStart.getTime(), epochEnd.getTime());
+    console.log("Start: " + epochStart.toISOString() + "\nEnd: " + epochEnd.toISOString());
+
+    // Validate selected timerange
+    if(epochTimerange[0] >= epochTimerange[1]) {
+        // Tell the user that range is invalid
+        myPage.conditionDisplay.innerHTML = '<span class="main-accent">Sorry, that time range isn&apos;t allowed.</span><br>Ensure that the end time is after the start time.';
+        console.log("Invalid time range");
+        return;
+    }
+
     // Format for LocationIQ API call - LONGITUDE BEFORE LATITUDE
-    var url = "https://us1.locationiq.com/v1/nearest/driving/"
+    let url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","
         + myPage.selectedCoords.lat.toFixed(7) + "?radiuses="
-        + SEARCH_RADIUS + "&key="
+        + IQ_SEARCH_RADIUS + "&key="
         + IQ_TOKEN
         + "&number=1"; 
 
@@ -45,12 +97,12 @@ function searchForConditions(ev) {
         console.log(resp);
 
         // some small local roads do not have a name
-        var roadName = (resp.waypoints[0].name != "") ? resp.waypoints[0].name : UNNAMED_ROAD_STRING;
+        let roadName = (resp.waypoints[0].name != "") ? resp.waypoints[0].name : UNNAMED_ROAD_STRING;
 
-        // call roadMonitor API to receive our IRI back
+        // call roadMonitor API to receive our roughness back
     
         // format results for HTML
-        var conditionResults = '<span class="main-accent">Road: </span>' + roadName;
+        let conditionResults = '<span class="main-accent">Road: </span>' + roadName;
 
         // display results to user
         myPage.conditionDisplay.innerHTML = conditionResults;
@@ -58,14 +110,17 @@ function searchForConditions(ev) {
         console.log(error);
 
         // tell the user to select a point closer to their desired road
-        var errorMsg = '<span class="main-accent">Sorry, no nearby road found.</span><br>Please select coordinates that are closer to the desired road.';
+        let errorMsg = '<span class="main-accent">Sorry, no nearby road found.</span><br>Please select coordinates that are closer to the desired road.';
         myPage.conditionDisplay.innerHTML = errorMsg;
     });
 }
 
-// Runs after map is fully initialized - sets up all other variables and events for the search functionality
+// Runs after map is fully initialized - sets up displays & all other variables and events for the search functionality
 function initializePage() {
     displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
+    updateSearchRadius();
+    myPage.timerangeStart.value = myPage.selectedTimerange[0];
+    myPage.timerangeEnd.value = myPage.selectedTimerange[1];
 
     myPage.icon = L.icon({
         iconUrl: '../images/mapMarker.png',

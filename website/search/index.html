@@ -57,7 +57,24 @@
                 <div class="condition-panel">
                     <h2>Selected Conditions</h2>
                     <div class="condition-display" id="condition-display">Drag the map to navigate, then click to select a location!</div>
-                    <div class="coordinate-display" id="coordinate-display">Current Coordinates: N/A</div>
+                    <div class="radius-panel" id="radius-entry">
+                        <div class="radius-display" id="radius-display">Search Radius:<br>N/A</div>
+                        <input class="radius-slider" id="radius-slider" type="range" min="25" max="1000" step="25"/>
+                    </div>
+                    <div class="timeframe-panel" id="timeframe-panel">
+                        <div>Time Range:</div>
+                        <span>From </span>
+                        <input
+                            type="datetime-local"
+                            id="timerange-start"
+                            name="timerange-start"/>
+                        <span><br>To </span>
+                        <input
+                            type="datetime-local"
+                            id="timerange-end"
+                            name="timerange-end"/>
+                    </div>
+                    <div class="coordinate-display" id="coordinate-display">Selected Coordinates:<br>N/A</div>
                     <button class="search-button" id="search-button">Click to Search</button>
                 </div>
             </div>
