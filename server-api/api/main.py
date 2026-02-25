@@ -57,10 +57,15 @@ def post_road_data(data: RoadData = Depends()):
            f"&key={IQ_TOKEN}"
            f"&number=1")
     print(url)
-    resp = requests.get(url)
-    resp_dict = resp.json()
-    datapoint_streetname = resp_dict["waypoints"][0]["name"] if (resp_dict["waypoints"][0]["name"] != "") else UNNAMED_ROAD_STRING
-    print("New point streetname:", datapoint_streetname)
+    
+    try:
+        resp = requests.get(url)
+        resp_dict = resp.json()
+        datapoint_streetname = resp_dict["waypoints"][0]["name"] if (resp_dict["waypoints"][0]["name"] != "") else UNNAMED_ROAD_STRING
+        print("New point streetname:", datapoint_streetname)
+    except:
+        print("No nearby road found, data rejected")
+        return {"Response": "No nearby road found, data rejected"}
 
     # data point is validated by the pydantic model
     # Store received point in server's local database
@@ -75,7 +80,7 @@ def post_road_data(data: RoadData = Depends()):
         session.commit()
         print("New Point ID:", new_datapoint.id)
 
-    return {"Response": "Data received!"}
+    return {"Response": f"Data received for {datapoint_streetname}!"}
 
 # Get conditions by coordinates (publicly available)
 @app.get("/conditions/coords/")
