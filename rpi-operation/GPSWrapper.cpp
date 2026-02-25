@@ -1,6 +1,8 @@
 #include <gps.h>
 #include <iostream>
 #include <unistd.h>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 class GPSWrapper{
@@ -39,3 +41,21 @@ class GPSWrapper{
         return 1;
     }
 };
+
+//gps test program
+int main(){
+    GPSWrapper gpsobj;
+    double latlon[2] = {0.0, 0.0};
+
+    while (true){
+        if ((gpsobj.getLocation(latlon) == 0){
+            cout<<"\nThe returned Lat Lon is: \n";
+            cout<<latlon[0]<<"\n";
+            cout<<latlon[1];
+        }
+        else{
+            cout<<"\n failed to read gps \n";
+        }
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
+}

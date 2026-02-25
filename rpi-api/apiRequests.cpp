@@ -65,7 +65,7 @@ bool sendData(RoadData data) {
         "x_coord=" + x_coord_str +
         "&y_coord=" + y_coord_str +
         "&iri=" + iri_str;
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, fields.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, fields.c_str());
 
     std::cout << "Performing cURL POST request...\n";
     response = curl_easy_perform(curl_handle);

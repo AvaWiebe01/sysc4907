@@ -17,7 +17,7 @@
 #include "shared_matrix.cpp"
 #include "shared_iri.cpp"
 #include "GPSWrapper.cpp"
-#include "../rpi-api/apiRequests.cpp"
+//#include "../rpi-api/apiRequests.cpp"
 
 float segment_distance(float start_lat, float start_lon, float end_lat, float end_lon);
 
