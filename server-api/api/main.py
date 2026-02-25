@@ -26,7 +26,7 @@ app = FastAPI()
 
 # Start the database engine instance (creates database file if it doesn't exist)
 sqlite_file_name = "roadmonitor-data-points.db"
-sqlite_url = f"sqlite:///database/{sqlite_file_name}"
+sqlite_url = f"sqlite:///api/database/{sqlite_file_name}"
 engine = sqlmodel.create_engine(sqlite_url, echo=True)
 
 # Create a table with DataPoint if doesn't already exist

@@ -1,10 +1,10 @@
 FROM python:3.14
 
-WORKDIR /container
-
 COPY ./requirements.txt ./container/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /container/requirements.txt
 
-COPY ./api ./container/api
+COPY --chmod=777 ./api ./container/api
+
+WORKDIR /container
 
 CMD ["fastapi", "run", "api/main.py", "--port", "8000"]
