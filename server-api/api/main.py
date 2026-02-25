@@ -4,7 +4,11 @@ from fastapi import HTTPException
 from fastapi import Depends
 import pydantic
 import sqlmodel
+import requests
 
+### These constants must be the same as 
+IQ_SEARCH_RADIUS = 100
+UNNAMED_ROAD_STRING = "Unnamed"
 IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc"; # locationIQ API token
 
 # Format for receiving condition data from RPi
@@ -44,14 +48,26 @@ def read_root():
 @app.post("/data")
 def post_road_data(data: RoadData = Depends()):
 
-    # get the street name from LocationIQ Nearest API
-    point_streetname = None
-    url = 
+    # get the street name for this point from LocationIQ Nearest API - LONGITUDE BEFORE LATITUDE
+    url = f"""https://us1.locationiq.com/v1/nearest/driving/
+           {data.lng:.7f},
+           {data.lat:.7f}
+           ?radiuses={IQ_SEARCH_RADIUS}
+           &key={IQ_TOKEN}
+           &number=1"""
+    resp = requests.get(url)
+    datapoint_streetname = resp.waypoints[0].name if (resp.waypoints[0].name != "") else UNNAMED_ROAD_STRING
+    print("New point streetname:", datapoint_streetname)
 
     # data point is validated by the pydantic model
     # Store received point in server's local database
     with sqlmodel.Session(engine) as session:
-        new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp, streetname=point_streetname)
+        new_datapoint = DataPoint(
+            lat = data.lat,
+            lng = data.lng,
+            roughness = data.roughness,
+            timestamp = data.timestamp,
+            streetname = datapoint_streetname)
         session.add(new_datapoint)
         session.commit()
         print("New Point ID:", new_datapoint.id)
@@ -82,11 +98,7 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
     if (start > end):
         raise HTTPException(status_code=400, detail="start cannot be after end.")
 
-    # No date range if start == end == 0
-    if (start == 0 and end == 0):
-        has_range = False
-    else: 
-        has_range = True
+    # select specified data from RoadMonitor database
 
     return {"lat": lat, "lng": lng}
 
