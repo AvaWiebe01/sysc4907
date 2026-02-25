@@ -5,6 +5,8 @@ from fastapi import Depends
 import pydantic
 import sqlmodel
 
+IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc"; # locationIQ API token
+
 # Format for receiving condition data from RPi
 # If this class is changed, the class "RoadData" in /rpi-api/apiRequests.py must also be updated.
 class RoadData(pydantic.BaseModel):
@@ -20,6 +22,7 @@ class DataPoint(sqlmodel.SQLModel, table=True):
     lng: float = sqlmodel.Field(..., index=True, ge=-180, le=180, description="lng must be within bounds [-180, 180]")
     roughness: float = sqlmodel.Field(..., ge=0, description="roughness must be non-negative")
     timestamp: float = sqlmodel.Field(..., index=True, ge=0, description="timestamp (in unix epoch milliseconds) must be non-negative")
+    streetname: str = sqlmodel.Field(..., index=True, description="street name as returned by LocationIQ Nearest API")
 
 # Create API instance
 app = FastAPI()
@@ -41,10 +44,14 @@ def read_root():
 @app.post("/data")
 def post_road_data(data: RoadData = Depends()):
 
+    # get the street name from LocationIQ Nearest API
+    point_streetname = None
+    url = 
+
     # data point is validated by the pydantic model
     # Store received point in server's local database
     with sqlmodel.Session(engine) as session:
-        new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp)
+        new_datapoint = DataPoint(lat = data.lat, lng = data.lng, roughness = data.roughness, timestamp = data.timestamp, streetname=point_streetname)
         session.add(new_datapoint)
         session.commit()
         print("New Point ID:", new_datapoint.id)

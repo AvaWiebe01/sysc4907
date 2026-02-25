@@ -3,6 +3,7 @@ const INITIAL_ZOOM = 16;
 const MAX_ZOOM = 20;
 const UNNAMED_ROAD_STRING = "Unnamed";
 const DEFAULT_TIMERANGE_START = "2000-01-01T00:00";
+const IQ_SEARCH_RADIUS = 100;
 const IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc"; // locationIQ API token
 
 // Holds all global variables (except constants)
@@ -78,7 +79,7 @@ function searchForConditions(ev) {
     let url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","
         + myPage.selectedCoords.lat.toFixed(7) + "?radiuses="
-        + SEARCH_RADIUS + "&key="
+        + IQ_SEARCH_RADIUS + "&key="
         + IQ_TOKEN
         + "&number=1"; 
 
