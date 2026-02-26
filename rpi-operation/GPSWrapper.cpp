@@ -48,7 +48,7 @@ int main(){
     double latlon[2] = {0.0, 0.0};
 
     while (true){
-        if ((gpsobj.getLocation(latlon) == 0){
+        if (gpsobj.getLocation(latlon) == 0){
             cout<<"\nThe returned Lat Lon is: \n";
             cout<<latlon[0]<<"\n";
             cout<<latlon[1];
