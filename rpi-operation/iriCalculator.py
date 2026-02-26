@@ -64,23 +64,7 @@ def fM(t):
     M = np.vstack([-t3*(t4*1.009488570317789e-3+t5*8.315147588488827e-4),-t3*(t4*3.296477717707572e-2-t5*8.200505959666402e-2),-t3*(t4*4.45117663500498e-3-t5*1.404985422724839e-2),t3*t4*9.959766924004811e-1,t3*(t4*8.315147588488827e-4-t5*1.009488570317789e-3),-t3*(t4*8.200505959666402e-2+t5*3.296477717707572e-2),-t3*(t4*1.404985422724839e-2+t5*4.45117663500498e-3),t3*t5*9.959766924004811e-1,-t7*(t8*4.238836503712554e-2-t9*1.19852508949723e-1),t7*t8*9.875165438583369e-1,t7*(t8*4.057897959535129e-3+t9*1.115993043207963e-2),t7*(t8*7.121835021721261e-2-t9*5.862264258169474e-2),-t7*(t8*1.19852508949723e-1+t9*4.238836503712554e-2),t7*t9*9.875165438583369e-1,-t7*(t8*1.115993043207963e-2-t9*4.057897959535129e-3),t7*(t8*5.862264258169474e-2+t9*7.121835021721261e-2)]).reshape((4,4))
     return M.transpose()
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("input_file", type=str, 
-    help="Name of the input file containing road profile. The file is a two-column ASCII file, the first column containing distance, the second elevation (height). Columns are separated by space or any delimiter set by -delimiter.")
-parser.add_argument("-delimiter", type=str, default=" ", help = "Delimiter used in the input file. If missing, set to the space character.")
-parser.add_argument("-skip_header", type=int, default=0, help = "Number of header lines to skip in the input file. If missing, set to zero.")
-parser.add_argument("-plot_file", type=str, help = "Name of the output IRI plot file. If missing, the file is not created. The file format is inferred from its extension, typically pdf, svg or png. For available formats, see the matplotlib savefig function.")
-parser.add_argument("iri_file", type=str, 
-    help="Name of the output IRI file. The file is a four-column ASCII file with columns" +
-        " [star_pos, end_pos, IRI, std_of_IRI], where std_of_IRI is the standard deviation of IRI within each segment," + 
-        " IRI is in mm/m (equivalent to m/km). The file keeps the delimiter of the input file.")
-parser.add_argument("-segment_length", type=float, default=20, help="Length of the IRI segment (typically 20 or 100 meters). If missing, set to 20m.")
-parser.add_argument("-start_pos", type= float, default=-1, help = "Starting position of IRI segments. If empty, set to the first sample.")
-parser.add_argument("-step", type= float, default=0, help = "If missing or 0, IRI is computed in non-overlapping segments. Otherwise, this is the shift of consecutive IRI segments in meters, often set to sampling step for regular sampling.")
-parser.add_argument("-filter_off", action="store_true", help = "If missing, for sampling intervals shorter than 0.25m, profile is first averaged with a box filter of length 0.25m as recommended in Sayers' paper to better represent the way in which the tire of a vehicle envelops the ground. If present, the filtering is turned off completely.")
-parser.add_argument("-method", type=int, default=2, choices = [0, 2], help = "0 - Sayers' implementation, for irregular sampling first resampled; 2(default) - our semi-analytical solution (Sroubek & Sorel).")
 
-args = parser.parse_args()
 
 def iri(Y, segment_length, start_pos, step, box_filter = True, method = 2):
 
@@ -340,59 +324,6 @@ def iri(Y, segment_length, start_pos, step, box_filter = True, method = 2):
         IRI[s,2] = np.sum(DD[start_si_o[s]-start_si_o[0]+1:end_si_o[s]-start_si_o[0]+1])
         IRI[s,3] = np.std(DD[start_si_o[s]-start_si_o[0]+1:end_si_o[s]-start_si_o[0]+1])*(end_si_o[s]-start_si_o[s])
     print( IRI, equidistant)
+    return IRI
 
 import matplotlib.pyplot as plt
-def plot_iri(IRI,YC, title, plot_file):
-#   PLOT_IRI IRI plot
-#
-#   function plot_iri(IRI,YC)
-#
-#   IRI ... output of iri function
-#   YC ... input profile of the iri function
-
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-    lns1 = ax1.plot((IRI[:,0]+IRI[:,1])/2, IRI[:,2], '-b', label = 'IRI')
-    lns2 = ax2.plot(YC[:,0], YC[:,1], '-r', label = 'Road profile')
-    ax1.set_xlabel('Stationing [m]')
-    ax1.set_ylabel('IRI [mm/m]', color='b')
-    ax2.set_ylabel('Elevation [m]', color='r')
-    ax1.set(title=title)
-    ax1.xaxis.label.set_size(20)
-    ax1.yaxis.label.set_size(20)
-    ax2.yaxis.label.set_size(20)
-    fig.set_size_inches(18.5, 10.5)
-    lns = lns1+lns2
-    labs = [l.get_label() for l in lns]
-    ax1.legend(lns, labs)
-    plt.savefig(plot_file)
-
-if __name__ == "__main__":   
-    road_profile = np.genfromtxt(args.input_file, delimiter=args.delimiter, skip_header=args.skip_header)
-    if args.filter_off:
-        box_filter = False        
-    else:
-        box_filter = True 
-    print('Box filter: ', box_filter)
-    Solution, equidistant = iri(road_profile, args.segment_length, args.start_pos, args.step, box_filter, args.method)
-    output_folder = os.path.dirname(args.iri_file)
-    if not output_folder:
-        output_folder = '.'
-    else:
-        if not os.path.exists(output_folder):
-            os.mkdir(output_folder)
-    np.savetxt(args.iri_file,Solution,fmt = '%s', 
-        header = 'Start, End, IRI value, IRI std. deviation', delimiter = args.delimiter)
-    if args.method == 0:
-        title = 'Sayers'
-    else:
-        title = 'Sorel & Sroubek'
-    if equidistant:
-        title += ', regular sampling'
-    else:
-        title += ', irregular sampling'
-    title += ', segment length {}m'.format(args.segment_length)        
-    if args.step:
-        title += ', step {}m'.format(args.step)
-    if args.plot_file:    
-        plot_iri(Solution, road_profile, title, args.plot_file)
