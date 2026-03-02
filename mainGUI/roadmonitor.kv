@@ -167,6 +167,15 @@ ScreenManager:
             font_name: 'Orbitron'
             font_size: '50sp'
 
+        Label:
+            pos_hint: {"center_x": 0.525, "center_y": 0.02}
+            text: app.network_status
+            text_size: self.size 
+            halign: 'left'
+            valign: 'middle'
+            font_name: 'Orbitron'
+            font_size: '12sp'
+
 <ConfigMenu>:
     CustomLayout:
         canvas.before:
@@ -189,7 +198,7 @@ ScreenManager:
                 size_hint: (0.25, 1)
 
                 on_perform_action: 
-                    root.decrement_year_release()
+                    root.decrement_year()
 
             BoxLayout:
                 orientation: 'vertical'
@@ -215,7 +224,7 @@ ScreenManager:
                 size_hint: (0.25, 1)
 
                 on_perform_action: 
-                    root.increment_year_release()
+                    root.increment_year()
 
         BoxLayout:
             orientation: 'horizontal'
@@ -233,6 +242,7 @@ ScreenManager:
 
                 DebouncedButton:
                     pos_hint: {"center_x": 0.5, "center_y": 0.30}
+                    size_hint: (0.8, 0.5)
                     background_color: 0,0,0,0
                     id: change_class_debouncedbutton
                     text: app.vehicle_class
@@ -254,6 +264,7 @@ ScreenManager:
 
                 DebouncedButton:
                     pos_hint: {"center_x": 0.5, "center_y": 0.30}
+                    size_hint: (0.8, 0.5)
                     background_color: 0,0,0,0
                     id: change_type_button
                     text: app.vehicle_type
@@ -285,3 +296,12 @@ ScreenManager:
             size_hint: (0.965, 0.225)
             on_perform_action: 
                 root.start_network_gui()
+
+        Label:
+            pos_hint: {"center_x": 0.525, "center_y": 0.02}
+            text: app.network_status
+            text_size: self.size 
+            halign: 'left'
+            valign: 'middle'
+            font_name: 'Orbitron'
+            font_size: '12sp'

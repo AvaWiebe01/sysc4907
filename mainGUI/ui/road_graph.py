@@ -15,7 +15,7 @@ class CustomGraph(Graph):
 
     def on_kv_post(self, base_widget):
         self.app = App.get_running_app()
-        zero_plot = LinePlot(color=[1, 1, 1, 1], line_width=1.2)
+        zero_plot = LinePlot(color=[1, 1, 1, 1], line_width=1.0)
         zero_plot.points = [(self.xmin, 0), (self.xmax, 0)]
         self.add_plot(zero_plot)
         self.rt_plot = LinePlot(color=[1,0,0.447,1], line_width=1.4)
@@ -26,14 +26,14 @@ class CustomGraph(Graph):
         if self.update_event: return
         else: 
             self.rt_plot.points = []
-            self.update_event = Clock.schedule_interval(lambda dt: self.update(), self.update_time_interval)
+            self.update_event = Clock.schedule_interval(self.update, self.update_time_interval)
 
     def stop_auto_update(self):
         if self.update_event:
             self.update_event.cancel()
             self.update_event = None
 
-    def update(self):
+    def update(self, dt):
         #sets the number of extra points to be drawn and the time interval to shift by
         divisor = 5
         interval = self.new_x

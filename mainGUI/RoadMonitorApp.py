@@ -15,12 +15,14 @@ from kivy.uix.screenmanager import ScreenManager, Screen, CardTransition
 from core.shared_mem import SharedDataArray
 from core.sensor_service import SensorService
 from core.config_management import ConfigManager
+from kivy.clock import Clock
 from ui.interface_buttons import MenuButton, CustomPopup
 from ui.road_graph import CustomGraph
 from screens.config_screen import ConfigMenu
 from screens.main_screen import MainMenu
 
 Config.set('kivy', 'exit_on_escape', '0')
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 # UI base size
 BASE_WIDTH = 800
@@ -29,6 +31,9 @@ BASE_HEIGHT = 480
 # Config constants
 DATA_ON = "ON"
 DATA_OFF = "OFF"
+
+NETWORK_DOWN = "Network Status: No Connection"
+NETWORK_UP = "Network Status: Connection Established"
 
 VEHICLE_TYPE_MARKER = "Vehicle Type: "
 VEHICLE_YEAR_MARKER = "Vehicle Year: "
@@ -60,6 +65,7 @@ class RoadMonitor(App):
     condition_text = DictProperty({1: "Terrible", 2: "Bad", 3: "Fair", 4: "Good", 5: "Excellent"})
 
     data_collection_on = BooleanProperty(False)
+    network_status = StringProperty(NETWORK_DOWN)
     vehicle_type = StringProperty("")
     vehicle_year = StringProperty("")
     vehicle_class = StringProperty("")
@@ -72,6 +78,13 @@ class RoadMonitor(App):
         super().__init__(**kwargs)
         self.sensor_data = SharedDataArray()
         self.config_manager = ConfigManager(CONFIG_PATH)
+
+    def check_network(self, dt):
+        output = subprocess.run(['ip', 'addr', 'show'], capture_output=True, text=True, check=True)
+        if "state UP" in output.stdout:
+            self.network_status = NETWORK_UP
+        else:
+            self.network_status = NETWORK_DOWN
 
     def get_road_data(self):
         road_data = self.sensor_data.read()
@@ -89,9 +102,6 @@ class RoadMonitor(App):
         #Exit without rebooting if escape key is pressed (for development purposes)
         if key == 27:
             self.stop()
-
-    def launch_connection_setup(self):
-        pass
 
     def reboot_system(self):
         self.stop()
@@ -124,6 +134,7 @@ class RoadMonitor(App):
             pass
 
     def build(self):
+        Clock.schedule_interval(self.check_network, 5)
         sm = ScreenManager(transition=CardTransition(duration=0.25))
         sm.add_widget(MainMenu(name="main"))
         sm.add_widget(ConfigMenu(name="config"))

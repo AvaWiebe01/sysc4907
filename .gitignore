@@ -1,6 +1,7 @@
 .vscode
 .venv
 rpi-operation/*.txt
+mainGUI/assets/*.txt
 *.out
 settings.json
 *.db
