@@ -159,19 +159,21 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
             .where(DataPoint.timestamp >= start, DataPoint.timestamp <= end)
             
         matching_datapoints = session.exec(statement).all()
-        
-        # remove outliers from the data
         df_datapoints = pd.DataFrame(matching_datapoints, columns=["Roughness"])
-        z_scores = np.abs(stats.zscore(df_datapoints["Roughness"]))
-        outlier_indices = np.where(z_scores > OUTLIER_THRESHOLD)[0]
-        clean_data = df_datapoints.drop(index=outlier_indices)
-
+        
         num_original = len(df_datapoints)
-        num_points = len(clean_data)
-        num_dropped = len(outlier_indices)
 
         # If there are no points, then do not process data
         if num_points > 0:
+            
+            # remove outliers from the data
+            z_scores = np.abs(stats.zscore(df_datapoints["Roughness"]))
+            outlier_indices = np.where(z_scores > OUTLIER_THRESHOLD)[0]
+            clean_data = df_datapoints.drop(index=outlier_indices)
+
+            num_points = len(clean_data)
+            num_dropped = len(outlier_indices)
+
             print(f"Dropped {num_dropped} outliers out of {num_original} data points, leaving {num_points} to be used")
 
             points_variance = clean_data["Roughness"].var() # find variance of non-outlier values. Higher variance means we should be less confident
