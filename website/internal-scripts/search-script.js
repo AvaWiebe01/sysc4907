@@ -117,8 +117,13 @@ function searchForConditions(ev) {
         console.log(resp);
         
         // format results for HTML
-        let conditionResults = `<span class="main-accent">Road:</span>${resp.streetname}`;
-        
+        let conditionResults = `<span class="main-accent">Road:</span> ${resp.streetname}`
+            + `<br><span class="main-accent">Roughness:</span> ${resp.roughness.toFixed(4)}`
+            + `<br><span class="main-accent"># of Data Points:</span> ${resp.num_points}`
+            + `<br><span class="main-accent">Variance:</span> ${resp.points_variance.toFixed(4)}`
+            + `<br><br>A roughness above 20 is considered poor.`
+            + `<br>Higher variance means data is less precise.`;
+
         // display results to user
         myPage.conditionDisplay.innerHTML = conditionResults;
     

@@ -46,6 +46,15 @@ main .condition-panel {
 
 main .condition-panel h2 {
     font-size: 2rem;
+    margin-bottom: 0;
+}
+
+main .condition-panel .condition-display  {
+    text-align:left;
+}
+
+main .condition-panel .condition-display span.center {
+    text-align:center;
 }
 
 main .condition-panel button {
