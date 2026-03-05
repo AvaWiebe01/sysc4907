@@ -27,6 +27,7 @@ addEventListener("DOMContentLoaded", (event) => {
     // Delcare internal variables for page/search parameters
     myPage.map = null;
     myPage.markerLayer = null;
+    myPage.circleLayer = null;
     myPage.selectedCoords = L.latLng(0,0);
     myPage.selectedRadius = myPage.radiusSlider.value;
     myPage.selectedTimerange = new Array(DEFAULT_TIMERANGE_START, myPage.currentDate);
@@ -41,10 +42,25 @@ addEventListener("DOMContentLoaded", (event) => {
 
 });
 
+// Update circle around marker to current coords
+function updateCircle() {
+    myPage.circleLayer.remove();
+    myPage.circleLayer = L.circle(myPage.selectedCoords, {radius: myPage.selectedRadius, fillOpacity: 0.1, color: "#ff5789"}).addTo(myPage.map);
+}
+
+// Update location marker to current coords
+function updateMarker() {
+    myPage.markerLayer.remove();
+    myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
+}
+
 // When radius slider is moved
 function updateSearchRadius(ev) {
     myPage.selectedRadius = myPage.radiusSlider.value;
     myPage.radiusDisplay.innerHTML = "Search Radius:<br>" + myPage.selectedRadius + "m";
+
+    if(myPage.markerLayer) { updateCircle(); } // make sure radius of circle is accurate
+
     console.log("Radius updated");
 }
 
@@ -117,8 +133,6 @@ function searchForConditions(ev) {
 
 // Runs after map is fully initialized - sets up displays & all other variables and events for the search functionality
 function initializePage() {
-    displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
-    updateSearchRadius();
     myPage.timerangeStart.value = myPage.selectedTimerange[0];
     myPage.timerangeEnd.value = myPage.selectedTimerange[1];
 
@@ -131,16 +145,23 @@ function initializePage() {
         shadowAnchor: [25, 47]
     });
     myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
+    myPage.circleLayer = L.circle(myPage.selectedCoords, {radius: myPage.selectedRadius, fillOpacity: 0.1, color: "#ff5789"}).addTo(myPage.map);
+
+    displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
+    updateSearchRadius();
 
     // Update selected coordinates on map click
     myPage.map.on('click', function(ev) {
         console.log("Map clicked, setting new coordinates");
+
         myPage.selectedCoords = myPage.map.mouseEventToLatLng(ev.originalEvent);
         displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
 
         // delete old marker and add new one 
-        myPage.markerLayer.remove();
-        myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
+        updateMarker();
+        
+        // update the circle around marker
+        updateCircle();
     });
 
     // Search and display on search button press
