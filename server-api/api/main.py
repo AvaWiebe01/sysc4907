@@ -2,6 +2,7 @@ from typing import Union
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Depends
+from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -35,6 +36,22 @@ class DataPoint(sqlmodel.SQLModel, table=True):
 
 # Create API instance
 app = FastAPI()
+
+# Define CORS middleware (allows broader API use)
+origins = [
+    "http://roadmonitor.online",
+    "http://roadmonitor.online:8000",
+    "https://roadmonitor.online",
+    "https://roadmonitor.online:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Start the database engine instance (creates database file if it doesn't exist)
 sqlite_file_name = "roadmonitor-data-points.db"

@@ -91,6 +91,44 @@ function searchForConditions(ev) {
         return;
     }
 
+    // call roadMonitor API to receive the requested data
+    let url = `http://www.roadmonitor.online:8000/conditions/coords/?`
+        + `lat=${myPage.selectedCoords.lat}`
+        + `&lng=${myPage.selectedCoords.lng}`
+        + `&radius=${myPage.selectedRadius}`
+        + `&start=${epochTimerange[0]}`
+        + `&end=${epochTimerange[1]}`
+
+    fetch(url)
+    .then((response) => {
+        console.log("URL fetched");
+
+        if (!response.ok) {
+            return response.json().then(errJson => {
+                const error = new Error("HTTP error");
+                error.status = response.status;
+                error.body = errJson;
+                throw error;
+            });
+        }
+        return response.json();
+
+    }).then(resp => {
+        console.log(resp);
+        
+        // format results for HTML
+        let conditionResults = `<span class="main-accent">Road:</span>${resp.streetname}`;
+        
+        // display results to user
+        myPage.conditionDisplay.innerHTML = conditionResults;
+    
+    }).catch((error) => {
+        // display an error message from API
+        let errorMsg = `<span class="main-accent">Sorry, your search failed.</span><br>${error.body.detail}`;
+        myPage.conditionDisplay.innerHTML = errorMsg;
+    });
+
+    /*
     // Format for LocationIQ API call - LONGITUDE BEFORE LATITUDE
     let url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","
@@ -114,8 +152,6 @@ function searchForConditions(ev) {
 
         // some small local roads do not have a name
         let roadName = (resp.waypoints[0].name != "") ? resp.waypoints[0].name : UNNAMED_ROAD_STRING;
-
-        // call roadMonitor API to receive the requested data
     
         // format results for HTML
         let conditionResults = '<span class="main-accent">Road: </span>' + roadName;
@@ -129,6 +165,7 @@ function searchForConditions(ev) {
         let errorMsg = '<span class="main-accent">Sorry, no nearby road found.</span><br>Please select coordinates that are closer to the desired road.';
         myPage.conditionDisplay.innerHTML = errorMsg;
     });
+    */
 }
 
 // Runs after map is fully initialized - sets up displays & all other variables and events for the search functionality
