@@ -164,7 +164,7 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
         num_original = len(df_datapoints)
 
         # If there are no points, then do not process data
-        if num_points > 0:
+        if num_original > 0:
             
             # remove outliers from the data
             z_scores = np.abs(stats.zscore(df_datapoints["Roughness"]))
