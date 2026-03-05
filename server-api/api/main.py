@@ -38,12 +38,7 @@ class DataPoint(sqlmodel.SQLModel, table=True):
 app = FastAPI()
 
 # Define CORS middleware (allows broader API use)
-origins = [
-    "http://roadmonitor.online",
-    "http://roadmonitor.online:8000",
-    "https://roadmonitor.online",
-    "https://roadmonitor.online:8000",
-]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
