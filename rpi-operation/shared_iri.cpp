@@ -4,7 +4,10 @@
 #include <unistd.h>
 #include <cstdlib> // For rand() and srand()
 #include <ctime>   // For time()
+#include<iostream>
 
+#define NOTREADY -1.0
+using namespace std;
 class SharedIRI
 {
     /*
@@ -33,7 +36,8 @@ class SharedIRI
     const char* shm_name = "shared_iri";
     const char* sem_name = "access_iri_sem";
     sem_t* semaphore;
-    dataStruct* data;
+    volatile dataStruct* data;
+	int shm_fd;
     
 
     public:
@@ -49,8 +53,11 @@ class SharedIRI
     float read_data() {
         float result = -1;
         sem_wait(semaphore);
-        if(data->values[1] == 1.0){
-            result = data->values[1] = 0.0;
+		//cout<<"reading from python\n";
+		//cout<<data->values[1];
+        if(data->values[1] > 0.0){
+            result = data->values[0]; 
+			data->values[1] = NOTREADY;
         }
         sem_post(semaphore);
         return result;

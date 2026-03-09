@@ -99,7 +99,7 @@ function searchForConditions(ev) {
         // some small local roads do not have a name
         let roadName = (resp.waypoints[0].name != "") ? resp.waypoints[0].name : UNNAMED_ROAD_STRING;
 
-        // call roadMonitor API to receive our roughness back
+        // call roadMonitor API to receive the requested data
     
         // format results for HTML
         let conditionResults = '<span class="main-accent">Road: </span>' + roadName;

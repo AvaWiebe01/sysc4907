@@ -5,10 +5,29 @@
 #include <cstdlib> // For rand() and srand()
 #include <ctime>   // For time()
 
+using namespace std;
+#include <iostream>
+#define READY 1.0
+
 class SharedMatrix
 {
+    /*
+    Please include the following libraries to use this class:
+    #include <fcntl.h>
+    #include <sys/mman.h>
+    #include <semaphore.h>
+    #include <unistd.h>
+    */
 
     private:
+
+    /*
+        -dataStruct stores a float array of size 3
+
+        -the contents stored in float array should look like this:
+
+        {time_interval, sensor_readings, condition_scale(1 - 5)}
+    */
     
     struct dataStruct {
         float values[151][2]; //DO NOT CHANGE THIS
@@ -20,12 +39,11 @@ class SharedMatrix
     sem_t* semaphore;
     dataStruct* data;
     int shm_fd;
-    
 
     public:
 
     SharedMatrix() {
-        shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
+        int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
         ftruncate(shm_fd, sizeof(dataStruct));
         data = (dataStruct*)mmap(0, sizeof(dataStruct), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);    
         semaphore = sem_open(sem_name, O_CREAT, 0666, 1);
@@ -33,21 +51,17 @@ class SharedMatrix
 
     //Writes the new values to shared_memory
     void send_data(float matrix[151][2]) {
+		//cout<<"write to shm\n";
         sem_wait(semaphore);
         for(int i = 0; i <= 149; i++){
             data->values[i][0] = matrix[i][0];
             data->values[i][1] = matrix[i][1];
         }
-        data->values[150][0] = 1; // update ready flag
+        data->values[150][0] = READY; // update ready flag
+		//cout<<data->values[150][0];
+		//cout<<"\nc++ side ready\n";
         sem_post(semaphore);
-    }
-
-    void cleanup(){
-        munmap(data, sizeof(dataStruct));
-        close(shm_fd);
-        shm_unlink(shm_name);
-        sem_close(semaphore);
-        sem_unlink(sem_name);
+		return;
     }
 };
 
