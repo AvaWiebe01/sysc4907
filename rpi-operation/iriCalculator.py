@@ -325,5 +325,3 @@ def iri(Y, segment_length, start_pos, step, box_filter = True, method = 2):
         IRI[s,3] = np.std(DD[start_si_o[s]-start_si_o[0]+1:end_si_o[s]-start_si_o[0]+1])*(end_si_o[s]-start_si_o[s])
     print( IRI, equidistant)
     return IRI
-
-import matplotlib.pyplot as plt
