@@ -47,3 +47,16 @@ table, th, td {
 th, td {
     padding:0.5rem;
 }
+
+main .image-labels {
+    display: flex;
+    flex-direction:row;
+    gap: 1rem;
+}
+
+main .image-labels .labels {
+    display: flex;
+    flex-direction:column;
+    justify-content: space-evenly;
+    font-size: 1rem;
+}
