@@ -47,6 +47,7 @@ CONFIG_PATH = PROJECT_ROOT / "assets" / "config.txt"
 # Window setup
 Window.size = (BASE_WIDTH, BASE_HEIGHT)
 Window.borderless = True
+Window.resizable = False
 Window.clearcolor = (0.1, 0.1, 0.1, 1)
 
 # Register the app font for use in KV

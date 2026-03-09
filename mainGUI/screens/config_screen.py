@@ -1,8 +1,9 @@
 
 from datetime import datetime
 from kivy.app import App
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, ListProperty
 from kivy.uix.screenmanager import Screen
+from ui.interface_buttons import MenuButton, CustomPopup, NetworkPopup
 import subprocess
 
 class ConfigMenu(Screen):
@@ -12,19 +13,22 @@ class ConfigMenu(Screen):
         self.app = App.get_running_app()
 
     def start_network_gui(self):
-        possible_commands = [
-            ["gnome-control-center", "wi-fi"],
-            ["nm-connection-editor"],
-            ["nm-applet"],
-            ["kcmshell5", "kcm_networkmanagement"],
-            ["systemsettings5", "network"]
-        ]
-        for command in possible_commands:
-            try:
-                subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
-                return
-            except Exception:
-                pass
+        # Scan for available networks
+        subprocess.run(["nmcli", "dev", "wifi", "rescan"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=10)
+            
+        # Get list of available SSIDs
+        output = subprocess.run(["nmcli", "-t", "-f", "SSID", "dev", "wifi"],capture_output=True,text=True,timeout=10)
+            
+        networks = output.stdout.splitlines()
+        
+        # Create and show popup with network list
+        NetworkPopup(networks=networks, on_connect_callback=self.on_network_connect).open()
+    
+    def on_network_connect(self, ssid, password):
+        try:
+            subprocess.Popen(["nmcli", "device", "wifi", "connect", ssid, "password", password],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,close_fds=True)
+        except Exception:
+            pass
 
     def increment_year(self):
         current_year = datetime.now().year
