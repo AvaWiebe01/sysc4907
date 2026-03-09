@@ -2,6 +2,7 @@ from typing import Union
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Depends
+from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -35,6 +36,17 @@ class DataPoint(sqlmodel.SQLModel, table=True):
 
 # Create API instance
 app = FastAPI()
+
+# Define CORS middleware (allows broader API use)
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Start the database engine instance (creates database file if it doesn't exist)
 sqlite_file_name = "roadmonitor-data-points.db"
@@ -159,25 +171,41 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
             .where(DataPoint.timestamp >= start, DataPoint.timestamp <= end)
             
         matching_datapoints = session.exec(statement).all()
-        
-        # remove outliers from the data
         df_datapoints = pd.DataFrame(matching_datapoints, columns=["Roughness"])
-        z_scores = np.abs(stats.zscore(df_datapoints["Roughness"]))
-        outlier_indices = np.where(z_scores > OUTLIER_THRESHOLD)[0]
-        clean_data = df_datapoints.drop(index=outlier_indices)
-
+        
         num_original = len(df_datapoints)
-        num_points = len(clean_data)
-        num_dropped = len(outlier_indices)
 
-        print(f"Dropped {num_dropped} outliers out of {num_original} data points, leaving {num_points} to be used")
+        # If there are no points, then do not process data
+        if num_original > 0:
+            
+            # remove outliers from the data
+            z_scores = np.abs(stats.zscore(df_datapoints["Roughness"]))
+            outlier_indices = np.where(z_scores > OUTLIER_THRESHOLD)[0]
+            clean_data = df_datapoints.drop(index=outlier_indices)
 
-        points_variance = clean_data["Roughness"].var() # find variance of non-outlier values. Higher variance means we should be less confident
-        if pd.isna(points_variance): points_variance = None
+            num_points = len(clean_data)
+            num_dropped = len(outlier_indices)
 
-        roughness = clean_data["Roughness"].mean() # average the non-outlier values
+            print(f"Dropped {num_dropped} outliers out of {num_original} data points, leaving {num_points} to be used")
 
-        # return the requested data to user
+            points_variance = clean_data["Roughness"].var() # find variance of non-outlier values. Higher variance means we should be less confident
+            if pd.isna(points_variance): points_variance = None
+
+            roughness = clean_data["Roughness"].mean() # average the non-outlier values
+
+            # return the requested data to user
+            return {
+                "lat": lat, # lat: the requested latitude
+                "lng": lng, # lng: the requested longitude
+                "radius": radius, # radius: the requested search radius
+                "start": start, # start: the requested time range start in UNIX epoch milliseconds
+                "end": end, # end: the requested time range end in UNIX epoch milliseconds
+                "streetname": streetname, # streetname: derived from locationIQ, roughness only pertains to data collected on this road
+                "num_points": num_points, # num_points: the number of data points used in calculating roughness
+                "points_variance": points_variance, # points_variance: the variance of the data points used in calculating roughness - higher = less reliable estimate
+                "roughness": roughness} # roughness: the roughness of the street, determined from all data points within the radius and time range
+
+        # return with no data
         return {
             "lat": lat, # lat: the requested latitude
             "lng": lng, # lng: the requested longitude
@@ -185,8 +213,6 @@ def get_conditions_from_coordinates(lat: float, lng: float, radius: int = 200, s
             "start": start, # start: the requested time range start in UNIX epoch milliseconds
             "end": end, # end: the requested time range end in UNIX epoch milliseconds
             "streetname": streetname, # streetname: derived from locationIQ, roughness only pertains to data collected on this road
-            "num_points": num_points, # num_points: the number of data points used in calculating roughness
-            "points_variance": points_variance, # points_variance: the variance of the data points used in calculating roughness - higher = less reliable estimate
-            "roughness": roughness} # roughness: the roughness of the street, determined from all data points within the radius and time range
-
-
+            "num_points": 0, # num_points: the number of data points used in calculating roughness
+            "points_variance": 0, # points_variance: the variance of the data points used in calculating roughness - higher = less reliable estimate
+            "roughness": 0} # roughness: the roughness of the street, determined from all data points within the radius and time range

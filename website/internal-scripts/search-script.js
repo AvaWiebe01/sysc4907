@@ -27,6 +27,7 @@ addEventListener("DOMContentLoaded", (event) => {
     // Delcare internal variables for page/search parameters
     myPage.map = null;
     myPage.markerLayer = null;
+    myPage.circleLayer = null;
     myPage.selectedCoords = L.latLng(0,0);
     myPage.selectedRadius = myPage.radiusSlider.value;
     myPage.selectedTimerange = new Array(DEFAULT_TIMERANGE_START, myPage.currentDate);
@@ -41,10 +42,25 @@ addEventListener("DOMContentLoaded", (event) => {
 
 });
 
+// Update circle around marker to current coords
+function updateCircle() {
+    myPage.circleLayer.remove();
+    myPage.circleLayer = L.circle(myPage.selectedCoords, {radius: myPage.selectedRadius, fillOpacity: 0.1, color: "#ff5789"}).addTo(myPage.map);
+}
+
+// Update location marker to current coords
+function updateMarker() {
+    myPage.markerLayer.remove();
+    myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
+}
+
 // When radius slider is moved
 function updateSearchRadius(ev) {
     myPage.selectedRadius = myPage.radiusSlider.value;
     myPage.radiusDisplay.innerHTML = "Search Radius:<br>" + myPage.selectedRadius + "m";
+
+    if(myPage.markerLayer) { updateCircle(); } // make sure radius of circle is accurate
+
     console.log("Radius updated");
 }
 
@@ -75,6 +91,49 @@ function searchForConditions(ev) {
         return;
     }
 
+    // call roadMonitor API to receive the requested data
+    let url = `http://www.roadmonitor.online:8000/conditions/coords/?`
+        + `lat=${myPage.selectedCoords.lat}`
+        + `&lng=${myPage.selectedCoords.lng}`
+        + `&radius=${myPage.selectedRadius}`
+        + `&start=${epochTimerange[0]}`
+        + `&end=${epochTimerange[1]}`
+
+    fetch(url)
+    .then((response) => {
+        console.log("URL fetched");
+
+        if (!response.ok) {
+            return response.json().then(errJson => {
+                const error = new Error("HTTP error");
+                error.status = response.status;
+                error.body = errJson;
+                throw error;
+            });
+        }
+        return response.json();
+
+    }).then(resp => {
+        console.log(resp);
+        
+        // format results for HTML
+        let conditionResults = `<span class="main-accent">Road:</span> ${resp.streetname}`
+            + `<br><span class="main-accent">Roughness:</span> ${resp.roughness.toFixed(4)}`
+            + `<br><span class="main-accent"># of Data Points:</span> ${resp.num_points}`
+            + `<br><span class="main-accent">Variance:</span> ${resp.points_variance.toFixed(4)}`
+            + `<br><br>A roughness above 20 is considered poor.`
+            + `<br>Higher variance means data is less precise.`;
+
+        // display results to user
+        myPage.conditionDisplay.innerHTML = conditionResults;
+    
+    }).catch((error) => {
+        // display an error message from API
+        let errorMsg = `<span class="main-accent">Sorry, your search failed.</span><br>${error.body.detail}`;
+        myPage.conditionDisplay.innerHTML = errorMsg;
+    });
+
+    /*
     // Format for LocationIQ API call - LONGITUDE BEFORE LATITUDE
     let url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","
@@ -98,8 +157,6 @@ function searchForConditions(ev) {
 
         // some small local roads do not have a name
         let roadName = (resp.waypoints[0].name != "") ? resp.waypoints[0].name : UNNAMED_ROAD_STRING;
-
-        // call roadMonitor API to receive the requested data
     
         // format results for HTML
         let conditionResults = '<span class="main-accent">Road: </span>' + roadName;
@@ -113,12 +170,11 @@ function searchForConditions(ev) {
         let errorMsg = '<span class="main-accent">Sorry, no nearby road found.</span><br>Please select coordinates that are closer to the desired road.';
         myPage.conditionDisplay.innerHTML = errorMsg;
     });
+    */
 }
 
 // Runs after map is fully initialized - sets up displays & all other variables and events for the search functionality
 function initializePage() {
-    displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
-    updateSearchRadius();
     myPage.timerangeStart.value = myPage.selectedTimerange[0];
     myPage.timerangeEnd.value = myPage.selectedTimerange[1];
 
@@ -131,16 +187,23 @@ function initializePage() {
         shadowAnchor: [25, 47]
     });
     myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
+    myPage.circleLayer = L.circle(myPage.selectedCoords, {radius: myPage.selectedRadius, fillOpacity: 0.1, color: "#ff5789"}).addTo(myPage.map);
+
+    displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
+    updateSearchRadius();
 
     // Update selected coordinates on map click
     myPage.map.on('click', function(ev) {
         console.log("Map clicked, setting new coordinates");
+
         myPage.selectedCoords = myPage.map.mouseEventToLatLng(ev.originalEvent);
         displayCoordinates(myPage.selectedCoords, myPage.coordinateDisplay);
 
         // delete old marker and add new one 
-        myPage.markerLayer.remove();
-        myPage.markerLayer = L.marker(myPage.selectedCoords, {icon: myPage.icon}).addTo(myPage.map);
+        updateMarker();
+        
+        // update the circle around marker
+        updateCircle();
     });
 
     // Search and display on search button press
