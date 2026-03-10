@@ -345,6 +345,8 @@ class RoadMonitor{
 				//get distance between start and end position in meters
 				float stmDistance = segment_distance(s_lat, s_lon, mp_lat, mp_lon);
 				float mteDistance = segment_distance(mp_lat, mp_lon, e_lat, e_lon);
+				stmDistance = 40.0;
+				mteDistance = 40.0;
 
 				//distance provided will crash IRI calculator
 				if(stmDistance <= 0 || mteDistance <=0){
