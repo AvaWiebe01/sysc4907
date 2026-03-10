@@ -129,9 +129,10 @@ class RoadMonitor{
 			newPoint.lat = latlon[0];//newdata->lat;
 			newPoint.lon = latlon[1];//newdata->log;
 			//check if lat and lon are valid
-			/*if(newPoint.lat == 0 && newPoint.lon == 0){
+			if(newPoint.lat == 0 && newPoint.lon == 0){
+				cout<<"recorded point has no GPS data: ignoring point\n";
 				continue;
-			}*/
+			}
 
 
 			// releases when lock goes out of scope.
@@ -199,8 +200,8 @@ class RoadMonitor{
 				roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
 			}
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(25));
-			recorded_point newPoint;
+		std::this_thread::sleep_for(std::chrono::milliseconds(25));
+		recorded_point newPoint;
 			// releases when lock goes out of scope.
 			{
 				unique_lock<mutex> lock(mtx);
@@ -226,114 +227,61 @@ class RoadMonitor{
 			//process data
 
 			//
-					if (i <= 0){
-						//record start position of road segment
-						s_lat = newPoint.lat;
-						s_lon = newPoint.lon;
-					}
-
-					if (i == 75)
-					{
-						mp_lat = newPoint.lat;
-						mp_lon = newPoint.lon;
-					}
-
-					//get change in time
-					int t = static_cast<int>(milliseconds_since_epoch) - \
-						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-
-					//get change in time in ms
-					float dt = float(t);
-
-					//convert dt to seconds
-					float ts = dt/1000;
-
-					//get total change in acceleration
-					float prevA = prevPoint.collected_data;
-
-					//calculate jerk
-					float rocA = (newPoint.collected_data - prevA)/ts;
-
-					//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
-					float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
-
-					//log position
-					roadSegment << position << ",";
-
-					//update position matrix
-					segment[i][1] = position;
-
-					//increase counter
-					i++;
-
-					//--store prev time-- -> already tracked in t -> unneeded
-					//prevTime = t;
-
-					//send accelerometer values and  to GUI
-					sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
-
 			if (prevPoint.valid == -1){
 				//do nothing -> need more points to have useful information
 			}
 
 			//
 			else{
-				if (newPoint.lat == 0 && newPoint.lon == 0){
-					int time = static_cast<int>(milliseconds_since_epoch) - \
-						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-					float dt = float(time);
-					float timefloat = dt/1000;
-					sharedmem.send_data(timefloat, newPoint.collected_data, currentIRI);
+				if (i <= 0){
+					//record start position of road segment
+					s_lat = newPoint.lat;
+					s_lon = newPoint.lon;
 				}
-				else{
-					if (i <= 0){
-						//record start position of road segment
-						s_lat = newPoint.lat;
-						s_lon = newPoint.lon;
-					}
 
-					if (i == 75)
-					{
-						mp_lat = newPoint.lat;
-						mp_lon = newPoint.lon;
-					}
-
-					//get change in time
-					int t = static_cast<int>(milliseconds_since_epoch) - \
-						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-
-					//get change in time in ms
-					float dt = float(t);
-
-					//convert dt to seconds
-					float ts = dt/1000;
-
-					//get total change in acceleration
-					float prevA = prevPoint.collected_data;
-
-					//calculate jerk
-					float rocA = (newPoint.collected_data - prevA)/ts;
-
-					//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
-					float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
-
-					//log position
-					roadSegment << position << ",";
-
-					//update position matrix
-					segment[i][1] = position;
-
-					//increase counter
-					i++;
-
-					//--store prev time-- -> already tracked in t -> unneeded
-					//prevTime = t;
-
-					//send accelerometer values and  to GUI
-					sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
+				if (i == 75)
+				{
+					mp_lat = newPoint.lat;
+					mp_lon = newPoint.lon;
 				}
-				prevPoint = newPoint;
+
+				//get change in time
+				int t = static_cast<int>(milliseconds_since_epoch) - \
+					static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
+
+				//get change in time in ms
+				float dt = float(t);
+
+				//convert dt to seconds
+				float ts = dt/1000;
+
+				//get total change in acceleration
+				float prevA = prevPoint.collected_data;
+
+				//calculate jerk
+				float rocA = (newPoint.collected_data - prevA)/ts;
+
+				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
+				float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
+
+				//log position
+				roadSegment << position << ",";
+
+				//update position matrix
+				segment[i][1] = position;
+
+				//increase counter
+
+				i++;
+				cout<<"current counter value: "<<i<<"\n ";
+				//--store prev time-- -> already tracked in t -> unneeded
+				//prevTime = t;
+
+				//send accelerometer values and  to GUI
+                sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
 			}
+			prevPoint = newPoint;
+
 			//calculate iri for road segment and reset i
 			if (i >=150){
 				//record last point position data
@@ -345,8 +293,6 @@ class RoadMonitor{
 				//get distance between start and end position in meters
 				float stmDistance = segment_distance(s_lat, s_lon, mp_lat, mp_lon);
 				float mteDistance = segment_distance(mp_lat, mp_lon, e_lat, e_lon);
-				stmDistance = 40.0;
-				mteDistance = 40.0;
 
 				//distance provided will crash IRI calculator
 				if(stmDistance <= 0 || mteDistance <=0){
@@ -375,7 +321,7 @@ class RoadMonitor{
 				while(received < 0){
 					received = sharediri.read_data(); //returns -1 if not ready yet
 					if (received == -2){
-
+						cout<<"issue during IRI calculation: continuing/n";
 						continue;
 					}
 				}
