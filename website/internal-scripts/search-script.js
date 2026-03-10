@@ -133,7 +133,7 @@ function searchForConditions(ev) {
         myPage.conditionDisplay.innerHTML = errorMsg;
     });
 
-    /*
+    /* This API call is obsolete, as the road is returned by RoadMonitor API
     // Format for LocationIQ API call - LONGITUDE BEFORE LATITUDE
     let url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","

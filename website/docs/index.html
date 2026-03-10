@@ -60,14 +60,17 @@
                 <table>
                     <tr>
                         <td>Name</td>
+                        <td>Data Type</td>
                         <td>Description</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">lat</span></td>
+                        <td>float</td>
                         <td>The latitude in Decimal Degree format.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">lng</span></td>
+                        <td>float</td>
                         <td>The longitude in Decimal Degree format.</td>
                     </tr>
                 </table>
@@ -77,21 +80,25 @@
                 <table>
                     <tr>
                         <td>Name</td>
+                        <td>Data Type</td>
                         <td>Description</td>
                         <td>Default Value</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">radius</span></td>
+                        <td>float</td>
                         <td>The radius around the specified coordinates to search for roughness, in meters.</td>
                         <td>200</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">start</span></td> 
+                        <td>float</td>
                         <td>The beginning of the time range to search, in UNIX epoch milliseconds. If start=end=0, no time constraint (default behavior).</td>
                         <td>0</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">end</span></td>
+                        <td>float</td>
                         <td>The end of the time range to search, in UNIX epoch milliseconds. If start=end=0, no time constraint (default behavior).</td>
                         <td>0</td>
                     </tr>
@@ -102,22 +109,27 @@
                 <table>
                     <tr>
                         <td>Name</td>
+                        <td>Data Type</td>
                         <td>Description</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">streetname</span></td>
+                        <td>str</td>
                         <td>The street for which this data is applicable. Selected based on the closest road to the request's coordinates.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">num_points</span></td>
+                        <td>int</td>
                         <td>The number of non-outlier points used to make the roughness calculation.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">points_variance</span></td>
+                        <td>float</td>
                         <td>The variance of the non-outlier points used in the roughness calculation.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">roughness</span></td>
+                        <td>float</td>
                         <td>A roughness score for the requested road, for the radius centered at the requested coordinates. The roughness score is an approximation of the International Roughness Index (IRI), therefore a higher score corresponds to a rougher road.</td>
                     </tr>
                 </table>

@@ -62,12 +62,11 @@ def read_root():
     return {"Response": "You have reached RoadMonitor's API. Visit www.roadmonitor.online/docs#api for more information."}
 
 # Send data to the database (used from RoadMonitor sensor device only)
+#TODO: Add authentication to ensure no malicious actors can send in data points
 @app.post("/data")
 def post_road_data(data: RoadData = Depends()):
 
     # get the street name for this point from LocationIQ Nearest API - LONGITUDE BEFORE LATITUDE
-
-
     # if we cannot find a nearby road, reject the data
     try:
         url = (f"https://us1.locationiq.com/v1/nearest/driving/"
