@@ -59,7 +59,7 @@ sqlmodel.SQLModel.metadata.create_all(engine)
 # Root endpoint
 @app.get("/")
 def read_root():
-    return {"Response": "You have reached RoadMonitor's API. Visit www.roadmonitor.online/docs/api for more information."}
+    return {"Response": "You have reached RoadMonitor's API. Visit www.roadmonitor.online/docs#api for more information."}
 
 # Send data to the database (used from RoadMonitor sensor device only)
 @app.post("/data")
