@@ -232,54 +232,62 @@ class RoadMonitor{
 
 			//
 			else{
-				if (i <= 0){
-					//record start position of road segment
-					s_lat = newPoint.lat;
-					s_lon = newPoint.lon;
+				if (newPoint.lat == 0 && newPoint.lon == 0){
+					int time = static_cast<int>(milliseconds_since_epoch) - \
+						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
+					float dt = float(t);
+					float ts = dt/1000;
+					sharedmem.send_data(timefloat, newPoint.collected_data, currentIRI);
 				}
+				else{
+					if (i <= 0){
+						//record start position of road segment
+						s_lat = newPoint.lat;
+						s_lon = newPoint.lon;
+					}
 
-				if (i == 75)
-				{
-					mp_lat = newPoint.lat;
-					mp_lon = newPoint.lon;
+					if (i == 75)
+					{
+						mp_lat = newPoint.lat;
+						mp_lon = newPoint.lon;
+					}
+
+					//get change in time
+					int t = static_cast<int>(milliseconds_since_epoch) - \
+						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
+
+					//get change in time in ms
+					float dt = float(t);
+
+					//convert dt to seconds
+					float ts = dt/1000;
+
+					//get total change in acceleration
+					float prevA = prevPoint.collected_data;
+
+					//calculate jerk
+					float rocA = (newPoint.collected_data - prevA)/ts;
+
+					//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
+					float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
+
+					//log position
+					roadSegment << position << ",";
+
+					//update position matrix
+					segment[i][1] = position;
+
+					//increase counter
+					i++;
+
+					//--store prev time-- -> already tracked in t -> unneeded
+					//prevTime = t;
+
+					//send accelerometer values and  to GUI
+					sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
 				}
-
-				//get change in time
-				int t = static_cast<int>(milliseconds_since_epoch) - \
-					static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-
-				//get change in time in ms
-				float dt = float(t);
-
-				//convert dt to seconds
-				float ts = dt/1000;
-
-				//get total change in acceleration
-				float prevA = prevPoint.collected_data;
-
-				//calculate jerk
-				float rocA = (newPoint.collected_data - prevA)/ts;
-
-				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
-				float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
-
-				//log position
-				roadSegment << position << ",";
-
-				//update position matrix
-				segment[i][1] = position;
-
-				//increase counter
-				i++;
-
-				//--store prev time-- -> already tracked in t -> unneeded
-				//prevTime = t;
-
-				//send accelerometer values and  to GUI
-                sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
+				prevPoint = newPoint;
 			}
-			prevPoint = newPoint;
-
 			//calculate iri for road segment and reset i
 			if (i >=150){
 				//record last point position data
@@ -319,7 +327,7 @@ class RoadMonitor{
 				while(received < 0){
 					received = sharediri.read_data(); //returns -1 if not ready yet
 					if (received == -2){
-						i = 0;
+
 						continue;
 					}
 				}
@@ -334,7 +342,7 @@ class RoadMonitor{
 			/**********/
 			//RoadData toDatabase(mp_lat, mp_lon, currentIRI/*, newPoint.timestamp*/);
 			//sendData(toDatabase);
-
+			}
 		}
 		return 0;
 	}
