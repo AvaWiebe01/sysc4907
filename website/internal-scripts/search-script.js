@@ -128,7 +128,11 @@ function searchForConditions(ev) {
 
     }).then(resp => {
         console.log(resp);
-        
+
+        // prevent errors for null value with toFixed()
+        if (resp.roughness == null) {resp.roughness = 0;}
+        if (resp.points_variance == null) {resp.points_variance = 0;}
+
         // format results for HTML
         let conditionResults = `<span class="main-accent">Road:</span> ${resp.streetname}`
             + `<br><span class="main-accent">Roughness:</span> ${resp.roughness.toFixed(4)}`
