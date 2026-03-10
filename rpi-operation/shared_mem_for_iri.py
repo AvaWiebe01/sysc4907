@@ -28,7 +28,7 @@ class SharedRoadMatrix:
 
     def read(self):
         self.sem.acquire()
-        print(self.view)
+        #print(self.view)
         try:
             if self.view[150, 0] > 0.0:
                 #print("\nPython ack")
