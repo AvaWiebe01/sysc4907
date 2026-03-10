@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en-US">
+	<head>
+		<meta charset="utf-8">
+		<meta name="author" content="Ava Wiebe">
+		<meta name="description" content="RoadMonitor's documentation Check API usage, sensor module instructions, and our terms of use.">
+		<title>RoadMonitor - Docs</title>
+		<link rel="icon" href="../images/favicon.png">
+		
+		<link rel="stylesheet" href="../internal-styles/global-styles.css">
+		<link rel="stylesheet" href="../internal-styles/docs-styles.css">
+		
+		<script src="../internal-scripts/jquery-3.7.1.js"></script>
+	</head>
+	
+	<body>
+        <header>
+            <div>
+                <a href="/" target="_self">RoadMonitor</a>
+            </div>
+        </header>
+        
+        <nav>
+            <div class="links">
+                <div class="title">
+                    Navigation
+                </div>
+                <div class="page-link">
+                    <a href="/search" target="_self">Search Road Conditions</a>
+                </div>
+                <div class="page-link">
+                    <a href="/about" target="_self">About Us</a>
+                </div>
+                <div class="page-link">
+                    <a href="/docs" target="_self">Documentation</a>
+                </div>
+                <div class="page-link">
+                    <a href="/docs#terms-of-use" target="_self">Terms of Use</a>
+                </div>
+            </div>
+            <div class="vertical-handle">
+                
+            </div>
+        </nav>
+
+        <main>
+            <h1>Documentation</h1>
+
+            <h2 id="api">RoadMonitor API</h2>
+            <div class="subsection">
+                We provide an API that allows you to check our road roughness data from anywhere.<br>
+                Currently, everyone is allowed to make requests.
+                <h3>
+                    Request Format
+                </h3>
+                GET http://www.roadmonitor.online:8000/conditions/coords?lat=<span class="alt-accent">{latitude}</span>&lng=<span class="alt-accent">{longitude}</span>
+                <h3>
+                    Required Parameters
+                </h3>
+                <table>
+                    <tr>
+                        <td>Name</td>
+                        <td>Description</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">lat</span></td>
+                        <td>The latitude in Decimal Degree format.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">lng</span></td>
+                        <td>The longitude in Decimal Degree format.</td>
+                    </tr>
+                </table>
+                <h3>
+                    Optional Parameters
+                </h3>
+                <table>
+                    <tr>
+                        <td>Name</td>
+                        <td>Description</td>
+                        <td>Default Value</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">radius</span></td>
+                        <td>The radius around the specified coordinates to search for roughness, in meters.</td>
+                        <td>200</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">start</span></td> 
+                        <td>The beginning of the time range to search, in UNIX epoch milliseconds. If start=end=0, no time constraint (default behavior).</td>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">end</span></td>
+                        <td>The end of the time range to search, in UNIX epoch milliseconds. If start=end=0, no time constraint (default behavior).</td>
+                        <td>0</td>
+                    </tr>
+                </table>
+                <h3>
+                    Response Parameters
+                </h3>
+                <table>
+                    <tr>
+                        <td>Name</td>
+                        <td>Description</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">streetname</span></td>
+                        <td>The street for which this data is applicable. Selected based on the closest road to the request's coordinates.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">num_points</span></td>
+                        <td>The number of non-outlier points used to make the roughness calculation.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">points_variance</span></td>
+                        <td>The variance of the non-outlier points used in the roughness calculation.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="alt-accent">roughness</span></td>
+                        <td>A roughness score for the requested road, for the radius centered at the requested coordinates. The roughness score is an approximation of the International Roughness Index (IRI), therefore a higher score corresponds to a rougher road.</td>
+                    </tr>
+                </table>
+                <br>
+                In addition, all request parameters are also contained in the response.
+                <h3>
+                    Errors
+                </h3>
+                If one or more parameters in the request is invalid, the API will return an error message with the code 400.<br>
+                The details of the error are returned in the following format:<br>
+                {<br>
+                    &emsp;"detail": "lng (longitude) must be within the bounds [-180, 180]."<br>
+                }
+                <h3>
+                    Request Example
+                </h3>
+                http://www.roadmonitor.online:8000/conditions/coords?lat=<span class="alt-accent">45.28899</span>&lng=<span class="alt-accent">-75.83657</span>&radius=<span class="alt-accent">450</span>&start=<span class="alt-accent">0</span>&end=<span class="alt-accent">1773064638573</span>
+                <h3>
+                    Response Example
+                </h3>
+                {<br>
+                    &emsp;"lat": 45.28899,<br>
+                    &emsp;"lng": -75.83657,<br>
+                    &emsp;"radius": 450,<br>
+                    &emsp;"start": 0.0,<br>
+                    &emsp;"end": 1773064458733.683,<br>
+                    &emsp;"streetname": "Old Richmond Road",<br>
+                    &emsp;"num_points": 24,<br>
+                    &emsp;"points_variance": 0.8097826086956522,<br>
+                    &emsp;"roughness": 2.125<br>
+                }
+            </div>
+
+            <h2 id="sensor-module" >Sensor Module Instructions</h2>
+            <div class="subsection">
+                The sensor module takes USB-C power. Most modern cars have a usb charging port, otherwise, you may need an adaptor.<br>
+                Once you plug the device in, it will automatically boot up and display the RoadMonitor UI, which will look something like this:<br>
+                <br>
+                <div class="image-labels">
+                    <img src="../images/uiLabels1.png" width="500" height="300" loading="lazy"></img>
+                    <div class="labels">
+                        <div><span class="alt-accent">[1] Power Button:</span><br>Tap to turn the device off.</div>
+                        <div><span class="alt-accent">[2] Road Condition Display:</span><br>Displays current road roughness in a simplified scale: Very Poor, Poor, Fair, Good, Very Good.</div>
+                        <div><span class="alt-accent">[3] Options Button:</span><br>Tap to access the options menu.</div>
+                        <div><span class="alt-accent">[4] Start/Stop Button:</span><br>Tap to pause or resume collecting road data, without shutting the device off. Collection is enabled by default.</div>
+                        <div><span class="alt-accent">[5] Accelerometer Readings Graph:</span><br>Shows the previous 5 seconds of accelerometer readings.</div>
+                        <div><span class="alt-accent">[6] Network Status Display:</span><br>Shows if the device has a network connection. A network connection is required for data collection.</div>
+                    </div>
+                </div>
+                <br>
+                The options screen allows you to connect to the network and help us collect more accurate data. Please visit it and adjust the device for your vehicle before you begin driving!<br>
+                <br>
+                <div class="image-labels">
+                    <img src="../images/uiLabels2.png" width="500" height="300" loading="lazy"></img><br>
+                    <div class="labels">
+                        <div><span class="alt-accent">[1] Back Button:</span><br>Return to the main screen.</div>
+                        <div><span class="alt-accent">[2] Vehicle Year Selector:</span><br>Tap the + or - buttons to specify which year your vehicle was manufactured.</div>
+                        <div><span class="alt-accent">[3] Vehicle Class Selector:</span><br>Tap to cycle through vehicle class options. Select if your vehicle is economy, mid-range, or luxury.</div>
+                        <div><span class="alt-accent">[4] Vehicle Type Selector:</span><br>Tap to cycle through vehicle body type options. Select if your vehicle is an SUV, sedan, truck, or minivan.</div>
+                        <div><span class="alt-accent">[5] Network Selector:</span><br>Tap to connect to a network. We recommend using your mobile phone's hotspot, so that you don't drop connection while driving. Please note that you must be connected to a network for the data to be properly collected!</div>
+                    </div>
+                </div>
+                <br>
+                Once your options are set up, place the device on a flat surface in your vehicle where it won't slip. Start driving, and the sensor module will automatically record the roughness of roads you drive on.<br>
+                Thank you for helping us keep our strets well-maintained!
+            </div>
+
+            <h2 id="terms-of-use">Terms of Use / Privacy Policy</h2>
+            <div class="subsection">
+                By using the RoadMonitor service or a sensor module, you agree to the following:<br>
+                <br>
+                RoadMonitor does not store any identifiable user information. 
+                All data sent to our database is anonymized and cannot be traced back to the user once stored. 
+                The sensor module does not record any audio, video, or other information beyond accelerometer and GPS readings. 
+                Once stored in the database, RoadMonitor is allowed to distribute the collected data to any user who requests it through the RoadMonitor API.
+                RoadMonitor's search page may ask for your location, but this information is not stored, and is used exclusively to determine the initial position of the draggable map.
+            </div>
+        </main>
+
+        <footer>
+            <div>
+                © RoadMonitor 2025. All rights reserved.
+            </div>
+        </footer>
+    </body>
+</html>

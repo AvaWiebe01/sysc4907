@@ -157,7 +157,7 @@ class RoadMonitor{
 		//initialize previous position and velocity
 		float prevPos = 0.0;
 		float prevVel = 0.0;
-		float prevTime = 0.0;
+		//float prevTime = 0.0;
 		float currentIRI = 0.0;
 
 		//counter to track number of processed points
@@ -245,7 +245,7 @@ class RoadMonitor{
 					static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
 				
 				//get change in time in ms
-				float dt = float(t)-prevTime;
+				float dt = float(t);
 				
 				//convert dt to seconds
 				float ts = dt/1000; 
@@ -268,8 +268,8 @@ class RoadMonitor{
 				//increase counter
 				i++;
 
-				//store prev time
-				prevTime = t;
+				//--store prev time-- -> already tracked in t -> unneeded
+				//prevTime = t;
 
 				//send accelerometer values and  to GUI
                 sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
