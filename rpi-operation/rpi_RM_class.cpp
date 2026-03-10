@@ -129,9 +129,9 @@ class RoadMonitor{
 			newPoint.lat = latlon[0];//newdata->lat;
 			newPoint.lon = latlon[1];//newdata->log;
 			//check if lat and lon are valid
-			if(newPoint.lat == 0 && newPoint.lon == 0){
+			/*if(newPoint.lat == 0 && newPoint.lon == 0){
 				continue;
-			}
+			}*/
 
 
 			// releases when lock goes out of scope.
