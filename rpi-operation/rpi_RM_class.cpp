@@ -235,7 +235,7 @@ class RoadMonitor{
 				if (newPoint.lat == 0 && newPoint.lon == 0){
 					int time = static_cast<int>(milliseconds_since_epoch) - \
 						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-					float dt = float(t);
+					float dt = float(time);
 					float timefloat = dt/1000;
 					sharedmem.send_data(timefloat, newPoint.collected_data, currentIRI);
 				}
