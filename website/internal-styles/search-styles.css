@@ -48,6 +48,7 @@ main .condition-panel h2 {
     font-family: 'walkway-oblique', 'Verdana', sans-serif; 
     font-size: 2rem;
     margin-bottom: 0;
+    margin-top:0;
     text-shadow: var(--text-color-glow) 0 0 1rem;
 }
 
