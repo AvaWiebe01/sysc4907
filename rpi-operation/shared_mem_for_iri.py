@@ -157,6 +157,9 @@ if __name__ == "__main__":
             #readings[150][0] == 0;
             segmentLength = readings[149][0]
             result = iriCalculator.iri(np.array(readings[0:150]), segmentLength, readings[0][0], step=0, box_filter=False, method=2)
-            print(result[0,2])
-            sharedIri.write(result[0,2])
+            result = result[0,2]
+            print(result)
+            if not isinstance(result, float): 
+                result = -2.0
+            sharedIri.write(result)
     
