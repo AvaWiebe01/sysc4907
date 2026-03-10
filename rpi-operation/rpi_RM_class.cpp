@@ -199,8 +199,8 @@ class RoadMonitor{
 				roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
 			}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(25));
-		recorded_point newPoint;
+			std::this_thread::sleep_for(std::chrono::milliseconds(25));
+			recorded_point newPoint;
 			// releases when lock goes out of scope.
 			{
 				unique_lock<mutex> lock(mtx);
@@ -226,6 +226,52 @@ class RoadMonitor{
 			//process data
 
 			//
+					if (i <= 0){
+						//record start position of road segment
+						s_lat = newPoint.lat;
+						s_lon = newPoint.lon;
+					}
+
+					if (i == 75)
+					{
+						mp_lat = newPoint.lat;
+						mp_lon = newPoint.lon;
+					}
+
+					//get change in time
+					int t = static_cast<int>(milliseconds_since_epoch) - \
+						static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
+
+					//get change in time in ms
+					float dt = float(t);
+
+					//convert dt to seconds
+					float ts = dt/1000;
+
+					//get total change in acceleration
+					float prevA = prevPoint.collected_data;
+
+					//calculate jerk
+					float rocA = (newPoint.collected_data - prevA)/ts;
+
+					//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
+					float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
+
+					//log position
+					roadSegment << position << ",";
+
+					//update position matrix
+					segment[i][1] = position;
+
+					//increase counter
+					i++;
+
+					//--store prev time-- -> already tracked in t -> unneeded
+					//prevTime = t;
+
+					//send accelerometer values and  to GUI
+					sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
+
 			if (prevPoint.valid == -1){
 				//do nothing -> need more points to have useful information
 			}
@@ -342,7 +388,7 @@ class RoadMonitor{
 			/**********/
 			//RoadData toDatabase(mp_lat, mp_lon, currentIRI/*, newPoint.timestamp*/);
 			//sendData(toDatabase);
-			}
+
 		}
 		return 0;
 	}
