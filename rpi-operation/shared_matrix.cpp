@@ -43,6 +43,7 @@ class SharedMatrix
     public:
 
     SharedMatrix() {
+		unlink(shm_name);
         int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
         ftruncate(shm_fd, sizeof(dataStruct));
         data = (dataStruct*)mmap(0, sizeof(dataStruct), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);    
