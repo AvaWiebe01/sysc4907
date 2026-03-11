@@ -54,8 +54,8 @@ class SharedIRI
     float read_data() {
         float result = -1;
         sem_wait(semaphore);
-		//cout<<"reading from python\n";
-		//cout<<data->values[1];
+		cout<<"reading from python\n";
+		cout<<data->values[1];
         if(data->values[1] > 0.0){
             result = data->values[0]; 
 			data->values[1] = NOTREADY;
