@@ -315,7 +315,7 @@ class RoadMonitor{
 				}
 
 				//give to python using shared memory
-				cout<<"sending matrix to python\n"
+				cout<<"sending matrix to python\n";
 				sharedmatrix.send_data(segment);
 				//wait for IRI back
 				float received = -1;
