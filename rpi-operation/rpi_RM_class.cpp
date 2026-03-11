@@ -342,8 +342,8 @@ class RoadMonitor{
 
 			//send to database
 			/**********/
-			//RoadData toDatabase(mp_lat, mp_lon, currentIRI/*, newPoint.timestamp*/);
-			//sendData(toDatabase);
+			RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
+			sendData(toDatabase);
 
 		}
 		return 0;
