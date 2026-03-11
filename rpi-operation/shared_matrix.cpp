@@ -52,7 +52,7 @@ class SharedMatrix
 
     //Writes the new values to shared_memory
     void send_data(float matrix[151][2]) {
-		//cout<<"write to shm\n";
+		cout<<"write to shm\n";
         sem_wait(semaphore);
         for(int i = 0; i <= 149; i++){
             data->values[i][0] = matrix[i][0];
