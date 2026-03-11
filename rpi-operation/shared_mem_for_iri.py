@@ -152,6 +152,7 @@ if __name__ == "__main__":
     sharedMemRoadMatrix = SharedRoadMatrix()
     
     while(True):
+        time.sleep(0.5)
         print("checking matrix")
         readings = sharedMemRoadMatrix.read()
         if (readings[150][0] == 1.0):
