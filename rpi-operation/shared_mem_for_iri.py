@@ -32,12 +32,12 @@ class SharedRoadMatrix:
         #print(self.view)
         try:
             if self.view[150, 0] > 0.0:
-                #print("\nPython ack")
+                print("\nPython ack")
                 returned = np.copy(self.view)
                 self.view[150,0] = NOTREADY
                 return returned
             else:
-                #print("not ready \n")
+                print("not ready \n")
                 return np.zeros((151,2))
         finally:
             self.sem.release()
