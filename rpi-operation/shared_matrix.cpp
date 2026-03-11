@@ -59,7 +59,7 @@ class SharedMatrix
         }
         data->values[150][0] = READY; // update ready flag
 		//cout<<data->values[150][0];
-		//cout<<"\nc++ side ready\n";
+		cout<<"\nc++ side ready\n";
         sem_post(semaphore);
 		return;
     }
