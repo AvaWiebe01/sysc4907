@@ -4,6 +4,7 @@ import posix_ipc
 import mmap
 import os
 import iriCalculator
+import math
 
 SHM_NAME = "shared_road_matrix"
 SEM_NAME = "access_matrix_sem"
@@ -151,15 +152,19 @@ if __name__ == "__main__":
     sharedMemRoadMatrix = SharedRoadMatrix()
     
     while(True):
-
+        print("checking matrix")
         readings = sharedMemRoadMatrix.read()
         if (readings[150][0] == 1.0):
+            print("valid matrix")
             #readings[150][0] == 0;
             segmentLength = readings[149][0]
+            print("getting IRI")
             result = iriCalculator.iri(np.array(readings[0:150]), segmentLength, readings[0][0], step=0, box_filter=False, method=2)
             result = result[0,2]
             print(result)
-            if not isinstance(result, float): 
+            if (not isinstance(result, float)) or (math.isnan(result)): 
+                print("invalid result: result set to -2 (error flag)")
                 result = -2.0
+            print("writing iri to shm")
             sharedIri.write(result)
     
