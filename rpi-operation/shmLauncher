@@ -1,4 +1,5 @@
 #!/bin/bash
+pkill -f "Python3"
 rm /dev/shm/sem* /dev/shm/shared*
 
 python3 shared_mem_for_iri.py & 
