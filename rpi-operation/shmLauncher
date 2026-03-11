@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 rm /dev/shm/sem* /dev/shm/shared*
 
 python3 shared_mem_for_iri.py & 
