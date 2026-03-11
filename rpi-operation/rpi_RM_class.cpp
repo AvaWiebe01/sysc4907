@@ -333,6 +333,7 @@ class RoadMonitor{
 					}
 				}
 				//update current IRI reading
+				cout<<"\n\nReceived IRI from python: "<<result<<"\n";
 				currentIRI = received; //change to be output of the python code.
 
 				//reset counter i
