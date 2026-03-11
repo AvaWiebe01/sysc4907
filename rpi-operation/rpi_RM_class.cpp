@@ -315,12 +315,14 @@ class RoadMonitor{
 				}
 
 				//give to python using shared memory
+				cout<<"sending matrix to python\n"
 				sharedmatrix.send_data(segment);
 				//wait for IRI back
 				float received = -1;
 				while(received < 0){
 					received = sharediri.read_data(); //returns -1 if not ready yet
-					if (received == -2){
+					if (received == -2){ //result was not a number on python side
+						i=0;
 						cout<<"issue during IRI calculation: continuing/n";
 						continue;
 					}
