@@ -335,15 +335,14 @@ class RoadMonitor{
 				//update current IRI reading
 				cout<<"\n\nReceived IRI from python: "<<received<<"\n";
 				currentIRI = received; //change to be output of the python code.
-
+				
+				//send to database
+				/**********/
+				RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
+				sendData(toDatabase);
 				//reset counter i
 				i = 0;
 			}
-
-			//send to database
-			/**********/
-			RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
-			sendData(toDatabase);
 
 		}
 		return 0;
