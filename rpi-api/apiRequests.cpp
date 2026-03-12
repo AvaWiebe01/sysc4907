@@ -44,10 +44,10 @@ bool sendData(RoadData data) {
     stream.str("");
     stream.clear();
 
-    auto timestamp_duration = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp.time_since_epoch());
+    auto timestamp_duration = std::chrono::duration_cast<std::chrono::milliseconds>(data.timestamp.time_since_epoch());
     int64_t millis_since_epoch = timestamp_duration.count();
     stream << millis_since_epoch;
-    std::string timestamp_str = stream.str();
+    timestamp_str = stream.str();
     stream.str("");
     stream.clear();
 
@@ -101,10 +101,10 @@ RoadData recvDataCoords(float lat, float lng, int radius = 200, int64_t start = 
     radius_str = std::to_string(radius);
     
     // Construct proper URL with coordinates
-    std::string url = "http://www.roadmonitor.online:8000/conditions/coords/"
-        + "?lat=" + lat_str
-        + "&lng=" + lng_str
-        + "&radius=" + radius_str;
+    std::string url = std::string("http://www.roadmonitor.online:8000/conditions/coords/")
+        + std::string("?lat=") + std::string(lat_str)
+        + std::string("&lng=") + std::string(lng_str)
+        + std::string("&radius=") + std::string(radius_str);
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
     
     std::cout << "Performing cURL GET request...\n";
