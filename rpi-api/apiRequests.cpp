@@ -52,8 +52,7 @@ bool sendData(RoadData data) {
     stream.clear();
 
     // Format for a proper POST request
-    std::string fields = std::string(endpoint_url) +
-        std::string("?lat=") + std::string(lat_str) +
+    std::string fields = std::string("\?lat=") + std::string(lat_str) +
         std::string("&lng=") + std::string(lng_str) +
         std::string("&roughness=") + std::string(roughness_str) +
         std::string("&timestamp=") + std::string(timestamp_str);

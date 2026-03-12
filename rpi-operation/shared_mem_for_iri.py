@@ -162,9 +162,17 @@ if __name__ == "__main__":
             print("getting IRI")
             result = iriCalculator.iri(np.array(readings[0:150]), segmentLength, readings[0][0], step=0, box_filter=False, method=2)
             print(result[0, 2])
-            if (not isinstance(result, float)) or (math.isnan(result)): 
+            
+            if isinstance(result, np.ndarray):#result is an array
+                if not isinstance(result[0, 2], float): 
+                    print("invalid result: result set to -2 (error flag)")
+                    result[0, 2] = -2.0
+                
+            else:
                 print("invalid result: result set to -2 (error flag)")
+                result= np.zeros(3)
                 result[0, 2] = -2.0
+
             print("writing iri to shm")
             sharedIri.write(result[0, 2])
     
