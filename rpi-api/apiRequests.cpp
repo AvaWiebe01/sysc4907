@@ -7,7 +7,7 @@
 #include <chrono>
 #include <ctime>
 #include "apiRequests.h"
-#include <curl/curl.h>
+#include <curl/curl.h> // MAKE SURE TO USE -lcurl WHEN COMPILING!
 
 #define FLOAT_PRECISION 6
 
