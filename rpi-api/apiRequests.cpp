@@ -20,7 +20,7 @@ bool sendData(RoadData data) {
     curl_handle = curl_easy_init();
 
     std::string endpoint_url = "http://www.roadmonitor.online:8000/data";
-    curl_easy_setopt(curl_handle, CURLOPT_URL, endpoint_url.c_str());
+    //curl_easy_setopt(curl_handle, CURLOPT_URL, endpoint_url.c_str());
 
     // Convert floats to strings with 5 decimals of precision
     std::stringstream stream;
@@ -52,14 +52,17 @@ bool sendData(RoadData data) {
     stream.clear();
 
     // Format for a proper POST request
-    std::string fields = std::string("\?lat=") + std::string(lat_str) +
+    std::string url = std::string(endpoint_url) +
+        std::string("?lat=") + std::string(lat_str) +
         std::string("&lng=") + std::string(lng_str) +
         std::string("&roughness=") + std::string(roughness_str) +
         std::string("&timestamp=") + std::string(timestamp_str);
-    curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, fields.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl_handle, CURLOPT_POST, 1L);
+    //curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, fields.c_str());
 
     std::cout << "Performing cURL POST request...\n";
-    std::cout << "POST " << endpoint_url << fields;
+    std::cout << "POST " << url;
     response = curl_easy_perform(curl_handle);
     
     if(response != CURLE_OK) {
