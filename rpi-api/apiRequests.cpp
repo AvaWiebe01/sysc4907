@@ -60,7 +60,7 @@ bool sendData(RoadData data) {
     curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, fields.c_str());
 
     std::cout << "Performing cURL POST request...\n";
-    std::cout << "POST" << endpoint_url << " " << fields;
+    std::cout << "POST " << endpoint_url << fields;
     response = curl_easy_perform(curl_handle);
     
     if(response != CURLE_OK) {
@@ -109,7 +109,7 @@ RoadData recvDataCoords(float lat, float lng, int radius = 200, int64_t start = 
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
     
     std::cout << "Performing cURL GET request...\n";
-    std::cout << "GET" << url;
+    std::cout << "GET " << url;
     response = curl_easy_perform(curl_handle);
 
     if(response != CURLE_OK) {
