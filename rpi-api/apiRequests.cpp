@@ -19,8 +19,8 @@ bool sendData(RoadData data) {
     CURLcode response;
     curl_handle = curl_easy_init();
 
-    std::string url = "http://www.roadmonitor.online:8000/data";
-    curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+    std::string endpoint_url = "http://www.roadmonitor.online:8000/data";
+    curl_easy_setopt(curl_handle, CURLOPT_URL, endpoint_url.c_str());
 
     // Convert floats to strings with 5 decimals of precision
     std::stringstream stream;
@@ -52,14 +52,15 @@ bool sendData(RoadData data) {
     stream.clear();
 
     // Format for a proper POST request
-    std::string fields =
-        "lat=" + lat_str +
-        "&lng=" + lng_str +
-        "&roughness=" + roughness_str +
-        "&timestamp=" + timestamp_str;
+    std::string fields = std::string(endpoint_url) +
+        std::string("lat=") + std::string(lat_str) +
+        std::string("&lng=") + std::string(lng_str) +
+        std::string("&roughness=") + std::string(roughness_str) +
+        std::string("&timestamp=") + std::string(timestamp_str);
     curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, fields.c_str());
 
     std::cout << "Performing cURL POST request...\n";
+    std::cout << "POST" << endpoint_url << " " << fields;
     response = curl_easy_perform(curl_handle);
     
     if(response != CURLE_OK) {
@@ -108,6 +109,7 @@ RoadData recvDataCoords(float lat, float lng, int radius = 200, int64_t start = 
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
     
     std::cout << "Performing cURL GET request...\n";
+    std::cout << "GET" << url;
     response = curl_easy_perform(curl_handle);
 
     if(response != CURLE_OK) {
