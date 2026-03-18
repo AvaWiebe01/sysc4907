@@ -262,10 +262,9 @@ class RoadMonitor{
 				float rocA = (newPoint.collected_data - prevA)/ts;
 
 				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
-				float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
-
+				float position =  prevPos + prevVel*ts + (0.5)*prevA*pow(ts, 2) + (1.0/6.0) * rocA * pow(ts, 3); //calculate position
+				
 				//log position
-				roadSegment << position << ",";
 
 				//update position matrix
 				segment[i][1] = position;
@@ -295,8 +294,8 @@ class RoadMonitor{
 				float mteDistance = segment_distance(mp_lat, mp_lon, e_lat, e_lon);
 				
 				//********************************
-				stmDistance = 40; //DEBUG CODES TO TEST WHILE STATIONARY
-				mteDistance = 40;
+				//stmDistance = 40; //DEBUG CODES TO TEST WHILE STATIONARY
+				//mteDistance = 40;
 				//********************************
 				
 				//distance provided will crash IRI calculator
@@ -353,9 +352,9 @@ class RoadMonitor{
 };
 
 int main(){
-	string filename = "";
-	cout<<"Enter a name for the log data with no file extension: ";
-	cin>>filename;
+	string filename = "Log";
+	//cout<<"Enter a name for the log data with no file extension: ";
+	//cin>>filename;
 	filename = filename + ".txt";
 
 	//create road monitor object

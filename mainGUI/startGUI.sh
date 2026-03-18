@@ -1,3 +1,3 @@
 #!/bin/bash
-source kivy_venv/bin/activate
+source ../mainGUI/kivy_venv/bin/activate
 python3 RoadMonitorApp.py

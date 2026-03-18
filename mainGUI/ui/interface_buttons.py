@@ -410,5 +410,6 @@ class PasswordInputPopup(Popup):
         if self.on_connect_callback and password:
             # Call the callback with the SSID and password for WiFi connection.
             # The callback (on_network_connect in config_screen.py) handles the actual connection.
+            self.dismiss()
             self.on_connect_callback(self.ssid, password)
         # Close this popup after attempting connection.
