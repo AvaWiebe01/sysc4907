@@ -105,7 +105,7 @@ function searchForConditions(ev) {
     }
 
     // call roadMonitor API to receive the requested data
-    let url = `http://www.roadmonitor.online:8000/conditions/coords/?`
+    let url = `https://www.roadmonitor.online:8000/conditions/coords/?`
         + `lat=${myPage.selectedCoords.lat}`
         + `&lng=${myPage.selectedCoords.lng}`
         + `&radius=${myPage.selectedRadius}`
