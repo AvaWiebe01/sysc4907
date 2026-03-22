@@ -19,7 +19,7 @@ bool sendData(RoadData data) {
     CURLcode response;
     curl_handle = curl_easy_init();
 
-    std::string url = "http://www.roadmonitor.online:8000/data";
+    std::string url = "https://www.roadmonitor.online:8000/data";
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
 
     // Convert floats to strings with 5 decimals of precision
@@ -58,6 +58,9 @@ bool sendData(RoadData data) {
         "&roughness=" + roughness_str +
         "&timestamp=" + timestamp_str;
     curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, fields.c_str());
+
+    // enable SSL
+    curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
 
     std::cout << "Performing cURL POST request...\n";
     response = curl_easy_perform(curl_handle);
@@ -101,11 +104,14 @@ RoadData recvDataCoords(float lat, float lng, int radius = 200, int64_t start = 
     radius_str = std::to_string(radius);
     
     // Construct proper URL with coordinates
-    std::string url = "http://www.roadmonitor.online:8000/conditions/coords/"
+    std::string url = "https://www.roadmonitor.online:8000/conditions/coords/"
         + "?lat=" + lat_str
         + "&lng=" + lng_str
         + "&radius=" + radius_str;
     curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
+
+    // enable SSL
+    curl_easy_setopt(curl_handle, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     
     std::cout << "Performing cURL GET request...\n";
     response = curl_easy_perform(curl_handle);
