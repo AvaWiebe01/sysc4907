@@ -11,4 +11,4 @@ RUN apt-get update && \
 
 WORKDIR /container
 
-CMD ["fastapi", "run", "api/main.py", "--port", "8000"]
+CMD ["fastapi", "run", "api/main.py", "--port", "8001", "--proxy-headers"]

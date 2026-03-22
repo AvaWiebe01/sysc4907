@@ -1,3 +1,6 @@
+# This file is for development only, and does not create Nginx container for HTTPS.
+# Use "docker compose up -d" to run all production containers!
+
 docker stop roadmonitor_api 2>/dev/null || true
 docker rm -f roadmonitor_api 2>/dev/null || true
 

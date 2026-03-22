@@ -2,7 +2,7 @@ const COORD_PRECISION = 5
 const INITIAL_ZOOM = 16;
 const MAX_ZOOM = 20;
 const UNNAMED_ROAD_STRING = "Unnamed";
-const DEFAULT_TIMERANGE_START = "2000-01-01T00:00";
+const MIN_TIMERANGE = "2026-03-01T00:00"; // start of RoadMonitor Service
 const IQ_SEARCH_RADIUS = 100;
 const IQ_TOKEN = "pk.e27e659d87b04fd8f55014c2e2e82ccc"; // locationIQ API token
 
@@ -30,7 +30,7 @@ addEventListener("DOMContentLoaded", (event) => {
     myPage.circleLayer = null;
     myPage.selectedCoords = L.latLng(0,0);
     myPage.selectedRadius = myPage.radiusSlider.value;
-    myPage.selectedTimerange = new Array(DEFAULT_TIMERANGE_START, myPage.currentDate);
+    myPage.selectedTimerange = new Array(MIN_TIMERANGE, myPage.currentDate);
     myPage.icon = null;
 
     // Update radius when slider is moved
@@ -67,6 +67,19 @@ function updateSearchRadius(ev) {
 function updateSearchTimerange(ev) {
     myPage.selectedTimerange[0] = myPage.timerangeStart.value;
     myPage.selectedTimerange[1] = myPage.timerangeEnd.value;
+
+    // Do not allow queries that start before the start of the RoadMonitor Service (March 1st, 2026
+    if(myPage.timerangeStart.value < MIN_TIMERANGE) {
+        myPage.timerangeStart.value = MIN_TIMERANGE;
+        myPage.selectedTimerange[0] = MIN_TIMERANGE;
+    }
+
+    // Do not allow queries that end before the start of the RoadMonitor Service (March 1st, 2026)
+    if(myPage.timerangeEnd.value < MIN_TIMERANGE) {
+        myPage.timerangeEnd.value = MIN_TIMERANGE;
+        myPage.selectedTimerange[1] = MIN_TIMERANGE;
+    }
+    
     console.log("Timerange updated")
 }
 
@@ -92,7 +105,7 @@ function searchForConditions(ev) {
     }
 
     // call roadMonitor API to receive the requested data
-    let url = `http://www.roadmonitor.online:8000/conditions/coords/?`
+    let url = `https://www.roadmonitor.online:8000/conditions/coords/?`
         + `lat=${myPage.selectedCoords.lat}`
         + `&lng=${myPage.selectedCoords.lng}`
         + `&radius=${myPage.selectedRadius}`
@@ -115,7 +128,11 @@ function searchForConditions(ev) {
 
     }).then(resp => {
         console.log(resp);
-        
+
+        // prevent errors for null value with toFixed()
+        if (resp.roughness == null) {resp.roughness = 0;}
+        if (resp.points_variance == null) {resp.points_variance = 0;}
+
         // format results for HTML
         let conditionResults = `<span class="main-accent">Road:</span> ${resp.streetname}`
             + `<br><span class="main-accent">Roughness:</span> ${resp.roughness.toFixed(4)}`
@@ -133,7 +150,7 @@ function searchForConditions(ev) {
         myPage.conditionDisplay.innerHTML = errorMsg;
     });
 
-    /*
+    /* This API call is obsolete, as the road is returned by RoadMonitor API
     // Format for LocationIQ API call - LONGITUDE BEFORE LATITUDE
     let url = "https://us1.locationiq.com/v1/nearest/driving/"
         + myPage.selectedCoords.lng.toFixed(7) + ","
@@ -250,10 +267,6 @@ function initializeMapFailure() {
 
 function displayCoordinates(coords, coordinateDisplay) {
     coordinateDisplay.innerHTML = "Selected Coordinates:<br>" + coords.lat.toFixed(COORD_PRECISION) + ", " + coords.lng.toFixed(COORD_PRECISION);
-}
-
-function displayConditions(coords, conditionDisplay) {
-
 }
 
 /* ==== MAIN ==== */
