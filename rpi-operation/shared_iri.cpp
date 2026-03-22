@@ -43,6 +43,7 @@ class SharedIRI
     public:
 
     SharedIRI() {
+		unlink(shm_name);
         int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
         ftruncate(shm_fd, sizeof(dataStruct));
         data = (dataStruct*)mmap(0, sizeof(dataStruct), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);    
@@ -53,8 +54,8 @@ class SharedIRI
     float read_data() {
         float result = -1;
         sem_wait(semaphore);
-		//cout<<"reading from python\n";
-		//cout<<data->values[1];
+		cout<<"reading from python\n";
+		cout<<data->values[1];
         if(data->values[1] > 0.0){
             result = data->values[0]; 
 			data->values[1] = NOTREADY;

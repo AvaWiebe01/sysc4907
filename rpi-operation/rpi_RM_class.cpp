@@ -17,7 +17,7 @@
 #include "shared_matrix.cpp"
 #include "shared_iri.cpp"
 #include "GPSWrapper.cpp"
-//#include "../rpi-api/apiRequests.cpp"
+#include "../rpi-api/apiRequests.cpp"
 
 float segment_distance(float start_lat, float start_lon, float end_lat, float end_lon);
 
@@ -37,17 +37,17 @@ struct recorded_point{
 class RoadMonitor{
 	private:
 	queue<recorded_point> work;
-	
+
 	//SharedData object to communicate with GUI
-	SharedData sharedmem;	
+	SharedData sharedmem;
 	SharedMatrix sharedmatrix;
 	SharedIRI sharediri;
- 	
+
 	//set up GPS
 	GPSWrapper gps;
 
 	//used to manage access to the work queue
-	mutex mtx;				
+	mutex mtx;
 	condition_variable cv;
 	bool timedout = false; // if the gps times out exit both threads
 	int vehicle_type = -1;
@@ -55,17 +55,17 @@ class RoadMonitor{
 	int vehicle_class= -1;
 	bool recording = true;
 	bool exitValue = false;
-	
+
 	public:
 	string name;
-	
+
 	RoadMonitor(const string iname){ //constructor
 		this->name = iname;
 	}
-	
+
 	int record_data(const string iname){
         //initialize serial
-        
+
         // Serial object
         serialib serial;
         // Connection to serial port
@@ -78,7 +78,7 @@ class RoadMonitor{
         }
         printf ("Successful connection to Arduino Nano \n");
 
-		//initialize gps 
+		//initialize gps
 			//declare GPS object
 		//gpsmm gps_rec("localhost", DEFAULT_GPSD_PORT);
 
@@ -87,8 +87,8 @@ class RoadMonitor{
 			cerr << "No GPSD running.\n";
 			return 1;
 		}*/
-		
-		
+
+
 		//get data
 		//float i = 1.1; test value
 		double latlon[2] = {0.0, 0.0};
@@ -98,57 +98,62 @@ class RoadMonitor{
 				exit(0);
 			}
 
-			recorded_point newPoint; //struct that all 
-			
+			recorded_point newPoint; //struct that all
+
 			//get new point from arduino
 			/*********/
 			char buffer[11];
 
             serial.readString(buffer, '\n', 14, 2000);
-            //printf("String read: %s\n", measured_accel); 
+            //printf("String read: %s\n", measured_accel);
             //remove indicators
             string buffer_str(buffer);
             size_t pos1 = buffer_str.find("@");
             size_t pos2 = buffer_str.find("#");
 
             string measured_accel = buffer_str.substr(pos1+1, pos2-1);
-            
+
             if(measured_accel.length() <= 2) {
 				continue;
 			}
-			
+
 			newPoint.timestamp = chrono::system_clock::now();
 
 			//convert from string to float:
 			newPoint.collected_data = stof(measured_accel);
-			 
+
 			//get location data
 			gps.getLocation(latlon);
 
 			//put gps loction data into the recorded point struct
 			newPoint.lat = latlon[0];//newdata->lat;
 			newPoint.lon = latlon[1];//newdata->log;
+			//check if lat and lon are valid
+			if(newPoint.lat == 0 && newPoint.lon == 0){
+				cout<<"recorded point has no GPS data: ignoring point\n";
+				continue;
+			}
 
-				
+
 			// releases when lock goes out of scope.
 			if (this->recording == true)
 			{
 				unique_lock<mutex> lock(mtx);
 				work.push(newPoint);
 				//notify waiting thread
-				cv.notify_all();		
+				cv.notify_all();
 			}
-			
+
 		}
         serial.closeDevice();
-		
+
 		return 0;
 	}
-	
+
 	int interpret_data(const string iname, string filename){
 		ofstream logFile(filename);
 		logFile << "Accel, lat, lon, time"<< endl;
-		
+
 		//store previous data point as well
 		recorded_point prevPoint;
 		//need 2 data points for calculation
@@ -190,7 +195,7 @@ class RoadMonitor{
 
 			//reset recorded matrix
 			if (i <=0){
-				//open a titled 
+				//open a titled
 				string currentFilename = segmentfile + ".csv";
 				roadSegment.open(currentFilename, ofstream::out | ofstream::trunc);
 			}
@@ -204,9 +209,9 @@ class RoadMonitor{
 				while (work.empty()) cv.wait(lock);
 				newPoint = work.front();
 				work.pop();
-			} 
-			
-			
+			}
+
+
 			//print to console for debug purposes
 			cerr<< newPoint.collected_data <<" " <<newPoint.lat <<" " <<newPoint.lon <<endl;
 
@@ -214,10 +219,10 @@ class RoadMonitor{
 			//
 			auto milliseconds_since_epoch = chrono::duration_cast<chrono::milliseconds>(
         		newPoint.timestamp.time_since_epoch()).count();
-			
+
 				//write data point to log file
-			logFile << newPoint.collected_data <<", " <<newPoint.lat <<", " <<newPoint.lon << ", " << milliseconds_since_epoch<<endl; 
-			
+			logFile << newPoint.collected_data <<", " <<newPoint.lat <<", " <<newPoint.lon << ", " << milliseconds_since_epoch<<endl;
+
 			/**********/
 			//process data
 
@@ -243,31 +248,31 @@ class RoadMonitor{
 				//get change in time
 				int t = static_cast<int>(milliseconds_since_epoch) - \
 					static_cast<int>(chrono::duration_cast<chrono::milliseconds>(prevPoint.timestamp.time_since_epoch()).count());
-				
+
 				//get change in time in ms
 				float dt = float(t);
-				
+
 				//convert dt to seconds
-				float ts = dt/1000; 
+				float ts = dt/1000;
 
 				//get total change in acceleration
 				float prevA = prevPoint.collected_data;
 
 				//calculate jerk
-				float rocA = (newPoint.collected_data - prevA)/ts; 
+				float rocA = (newPoint.collected_data - prevA)/ts;
 
 				//float vel = prevVel + prevA*t + (1/2) * rocA * (t^2); //calculate velocity
-				float position =  prevPos + prevVel*ts + (1/2)*prevA*pow(ts, 2) + (1/6) * rocA * pow(ts, 3); //calculate position
-
-				//log position
-				roadSegment << position << ",";
+				float position =  prevPos + prevVel*ts + (0.5)*prevA*pow(ts, 2) + (1.0/6.0) * rocA * pow(ts, 3); //calculate position
 				
+				//log position
+
 				//update position matrix
 				segment[i][1] = position;
 
 				//increase counter
-				i++;
 
+				i++;
+				cout<<"current counter value: "<<i<<"\n ";
 				//--store prev time-- -> already tracked in t -> unneeded
 				//prevTime = t;
 
@@ -287,6 +292,17 @@ class RoadMonitor{
 				//get distance between start and end position in meters
 				float stmDistance = segment_distance(s_lat, s_lon, mp_lat, mp_lon);
 				float mteDistance = segment_distance(mp_lat, mp_lon, e_lat, e_lon);
+				
+				//********************************
+				//stmDistance = 40; //DEBUG CODES TO TEST WHILE STATIONARY
+				//mteDistance = 40;
+				//********************************
+				
+				//distance provided will crash IRI calculator
+				if(stmDistance <= 0 || mteDistance <=0){
+					i = 0;
+					continue;
+				}
 
 				//get spacing between recorded points -> i is the number of points recorded
 				//assuming most points recorded successfully
@@ -301,38 +317,44 @@ class RoadMonitor{
 				{
 					segment[j+75][0] = stmDistance+distance_between_mte*j;
 				}
-				
+
 				//give to python using shared memory
+				cout<<"sending matrix to python\n";
 				sharedmatrix.send_data(segment);
 				//wait for IRI back
 				float received = -1;
 				while(received < 0){
 					received = sharediri.read_data(); //returns -1 if not ready yet
+					if (received == -2){ //result was not a number on python side
+						i=0;
+						cout<<"issue during IRI calculation: continuing/n";
+						continue;
+					}
 				}
 				//update current IRI reading
+				cout<<"\n\nReceived IRI from python: "<<received<<"\n";
 				currentIRI = received; //change to be output of the python code.
 				
+				//send to database
+				/**********/
+				RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
+				sendData(toDatabase);
 				//reset counter i
 				i = 0;
 			}
 
-			//send to database
-			/**********/
-			//RoadData toDatabase(mp_lat, mp_lon, currentIRI/*, newPoint.timestamp*/);
-			//sendData(toDatabase);
-
 		}
 		return 0;
 	}
-	
-	
-	
-};	
+
+
+
+};
 
 int main(){
-	string filename = "";
-	cout<<"Enter a name for the log data with no file extension: ";
-	cin>>filename;
+	string filename = "Log";
+	//cout<<"Enter a name for the log data with no file extension: ";
+	//cin>>filename;
 	filename = filename + ".txt";
 
 	//create road monitor object

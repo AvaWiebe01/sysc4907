@@ -41,7 +41,7 @@ class GPSWrapper{
         return 1;
     }
 };
-
+/*
 //gps test program
 int main(){
     GPSWrapper gpsobj;
@@ -59,3 +59,4 @@ int main(){
         this_thread::sleep_for(chrono::milliseconds(100));
     }
 }
+*/

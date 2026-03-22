@@ -4,6 +4,7 @@ import posix_ipc
 import mmap
 import os
 import iriCalculator
+import math
 
 SHM_NAME = "shared_road_matrix"
 SEM_NAME = "access_matrix_sem"
@@ -28,15 +29,15 @@ class SharedRoadMatrix:
 
     def read(self):
         self.sem.acquire()
-        print(self.view)
+        #print(self.view)
         try:
             if self.view[150, 0] > 0.0:
-                #print("\nPython ack")
+                print("\nPython ack")
                 returned = np.copy(self.view)
                 self.view[150,0] = NOTREADY
                 return returned
             else:
-                #print("not ready \n")
+                print("not ready \n")
                 return np.zeros((151,2))
         finally:
             self.sem.release()
@@ -151,12 +152,27 @@ if __name__ == "__main__":
     sharedMemRoadMatrix = SharedRoadMatrix()
     
     while(True):
-
+        time.sleep(0.5)
+        print("checking matrix")
         readings = sharedMemRoadMatrix.read()
         if (readings[150][0] == 1.0):
+            print("valid matrix")
             #readings[150][0] == 0;
             segmentLength = readings[149][0]
+            print("getting IRI")
             result = iriCalculator.iri(np.array(readings[0:150]), segmentLength, readings[0][0], step=0, box_filter=False, method=2)
-            print(result[0,2])
-            sharedIri.write(result[0,2])
+            print(result[0, 2])
+            
+            if isinstance(result, np.ndarray):#result is an array
+                if not isinstance(result[0, 2], float): 
+                    print("invalid result: result set to -2 (error flag)")
+                    result[0, 2] = -2.0
+                
+            else:
+                print("invalid result: result set to -2 (error flag)")
+                result= np.zeros(3)
+                result[0, 2] = -2.0
+
+            print("writing iri to shm")
+            sharedIri.write(result[0, 2])
     

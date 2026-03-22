@@ -43,6 +43,7 @@ class SharedMatrix
     public:
 
     SharedMatrix() {
+		unlink(shm_name);
         int shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, 0666);
         ftruncate(shm_fd, sizeof(dataStruct));
         data = (dataStruct*)mmap(0, sizeof(dataStruct), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);    
@@ -51,7 +52,7 @@ class SharedMatrix
 
     //Writes the new values to shared_memory
     void send_data(float matrix[151][2]) {
-		//cout<<"write to shm\n";
+		cout<<"write to shm\n";
         sem_wait(semaphore);
         for(int i = 0; i <= 149; i++){
             data->values[i][0] = matrix[i][0];
@@ -59,7 +60,7 @@ class SharedMatrix
         }
         data->values[150][0] = READY; // update ready flag
 		//cout<<data->values[150][0];
-		//cout<<"\nc++ side ready\n";
+		cout<<"\nc++ side ready\n";
         sem_post(semaphore);
 		return;
     }
