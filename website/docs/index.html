@@ -53,21 +53,24 @@
                 <h3>
                     Request Format
                 </h3>
-                GET http://www.roadmonitor.online:8000/conditions/coords?lat=<span class="alt-accent">{latitude}</span>&lng=<span class="alt-accent">{longitude}</span>
+                <span class="alt-accent">GET</span> http://www.roadmonitor.online:8000/conditions/coords?lat=<span class="alt-accent">{latitude}</span>&lng=<span class="alt-accent">{longitude}</span>
                 <h3>
                     Required Parameters
                 </h3>
                 <table>
                     <tr>
                         <td>Name</td>
+                        <td>Data Type</td>
                         <td>Description</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">lat</span></td>
+                        <td>float</td>
                         <td>The latitude in Decimal Degree format.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">lng</span></td>
+                        <td>float</td>
                         <td>The longitude in Decimal Degree format.</td>
                     </tr>
                 </table>
@@ -77,21 +80,25 @@
                 <table>
                     <tr>
                         <td>Name</td>
+                        <td>Data Type</td>
                         <td>Description</td>
                         <td>Default Value</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">radius</span></td>
+                        <td>float</td>
                         <td>The radius around the specified coordinates to search for roughness, in meters.</td>
                         <td>200</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">start</span></td> 
+                        <td>float</td>
                         <td>The beginning of the time range to search, in UNIX epoch milliseconds. If start=end=0, no time constraint (default behavior).</td>
                         <td>0</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">end</span></td>
+                        <td>float</td>
                         <td>The end of the time range to search, in UNIX epoch milliseconds. If start=end=0, no time constraint (default behavior).</td>
                         <td>0</td>
                     </tr>
@@ -102,22 +109,27 @@
                 <table>
                     <tr>
                         <td>Name</td>
+                        <td>Data Type</td>
                         <td>Description</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">streetname</span></td>
+                        <td>str</td>
                         <td>The street for which this data is applicable. Selected based on the closest road to the request's coordinates.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">num_points</span></td>
+                        <td>int</td>
                         <td>The number of non-outlier points used to make the roughness calculation.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">points_variance</span></td>
+                        <td>float</td>
                         <td>The variance of the non-outlier points used in the roughness calculation.</td>
                     </tr>
                     <tr>
                         <td><span class="alt-accent">roughness</span></td>
+                        <td>float</td>
                         <td>A roughness score for the requested road, for the radius centered at the requested coordinates. The roughness score is an approximation of the International Roughness Index (IRI), therefore a higher score corresponds to a rougher road.</td>
                     </tr>
                 </table>
@@ -129,7 +141,7 @@
                 If one or more parameters in the request is invalid, the API will return an error message with the code 400.<br>
                 The details of the error are returned in the following format:<br>
                 {<br>
-                    &emsp;"detail": "lng (longitude) must be within the bounds [-180, 180]."<br>
+                    &emsp;<span class="alt-accent">"detail":</span> "lng (longitude) must be within the bounds [-180, 180]."<br>
                 }
                 <h3>
                     Request Example
@@ -139,15 +151,15 @@
                     Response Example
                 </h3>
                 {<br>
-                    &emsp;"lat": 45.28899,<br>
-                    &emsp;"lng": -75.83657,<br>
-                    &emsp;"radius": 450,<br>
-                    &emsp;"start": 0.0,<br>
-                    &emsp;"end": 1773064458733.683,<br>
-                    &emsp;"streetname": "Old Richmond Road",<br>
-                    &emsp;"num_points": 24,<br>
-                    &emsp;"points_variance": 0.8097826086956522,<br>
-                    &emsp;"roughness": 2.125<br>
+                    &emsp;<span class="alt-accent">"lat":</span> 45.28899,<br>
+                    &emsp;<span class="alt-accent">"lng":</span> -75.83657,<br>
+                    &emsp;<span class="alt-accent">"radius":</span> 450,<br>
+                    &emsp;<span class="alt-accent">"start":</span> 0.0,<br>
+                    &emsp;<span class="alt-accent">"end":</span> 1773064458733.683,<br>
+                    &emsp;<span class="alt-accent">"streetname":</span> "Old Richmond Road",<br>
+                    &emsp;<span class="alt-accent">"num_points":</span> 24,<br>
+                    &emsp;<span class="alt-accent">"points_variance":</span> 0.8097826086956522,<br>
+                    &emsp;<span class="alt-accent">"roughness":</span> 2.125<br>
                 }
             </div>
 
@@ -199,7 +211,7 @@
 
         <footer>
             <div>
-                © RoadMonitor 2025. All rights reserved.
+                © RoadMonitor 2026. All rights reserved.
             </div>
         </footer>
     </body>
