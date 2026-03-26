@@ -64,7 +64,7 @@ class CustomLayout(FloatLayout):
 
 class RoadMonitor(App):
     condition_scale = NumericProperty(1)
-    condition_text = DictProperty({1: "Terrible", 2: "Bad", 3: "Fair", 4: "Good", 5: "Excellent"})
+    condition_text = DictProperty({5: "Excellent", 4: "Good", 3: "Fair", 2: "Bad", 1: "Terrible"})
 
     data_collection_on = BooleanProperty(False)
     network_status = StringProperty(NETWORK_DOWN)

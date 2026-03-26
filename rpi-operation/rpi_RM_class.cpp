@@ -126,8 +126,10 @@ class RoadMonitor{
 			gps.getLocation(latlon);
 
 			//put gps loction data into the recorded point struct
-			newPoint.lat = latlon[0];//newdata->lat;
-			newPoint.lon = latlon[1];//newdata->log;
+			//newPoint.lat = latlon[0];//newdata->lat;
+			//newPoint.lon = latlon[1];//newdata->log;
+			newPoint.lat = 43.65854;
+			newPoint.lon = -79.39074;
 			//check if lat and lon are valid
 			if(newPoint.lat == 0 && newPoint.lon == 0){
 				cout<<"recorded point has no GPS data: ignoring point\n";
@@ -164,6 +166,7 @@ class RoadMonitor{
 		float prevVel = 0.0;
 		//float prevTime = 0.0;
 		float currentIRI = 0.0;
+		float rating = 0.0;
 
 		//counter to track number of processed points
 		int i = 0;
@@ -277,7 +280,7 @@ class RoadMonitor{
 				//prevTime = t;
 
 				//send accelerometer values and  to GUI
-                sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
+                sharedmem.send_data(ts, newPoint.collected_data, rating);
 			}
 			prevPoint = newPoint;
 
@@ -294,8 +297,8 @@ class RoadMonitor{
 				float mteDistance = segment_distance(mp_lat, mp_lon, e_lat, e_lon);
 				
 				//********************************
-				//stmDistance = 40; //DEBUG CODES TO TEST WHILE STATIONARY
-				//mteDistance = 40;
+				stmDistance = 40; //DEBUG CODES TO TEST WHILE STATIONARY
+				mteDistance = 40;
 				//********************************
 				
 				//distance provided will crash IRI calculator
@@ -333,8 +336,15 @@ class RoadMonitor{
 				}
 				//update current IRI reading
 				cout<<"\n\nReceived IRI from python: "<<received<<"\n";
-				currentIRI = received; //change to be output of the python code.
 				
+
+				currentIRI = received;  //change to be output of the python code.
+				if (currentIRI < 52){
+					rating = 5;
+				}
+				else{
+					rating = 1;
+				}			
 				//send to database
 				/**********/
 				RoadData toDatabase(mp_lat, mp_lon, currentIRI, newPoint.timestamp);
