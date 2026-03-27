@@ -165,6 +165,10 @@ class RoadMonitor{
 		//float prevTime = 0.0;
 		float currentIRI = 0.0;
 
+		float roadRating = 1.0;
+
+		float badThresh, fairThresh, goodThresh, excellentThresh;
+
 		//counter to track number of processed points
 		int i = 0;
 
@@ -277,7 +281,7 @@ class RoadMonitor{
 				//prevTime = t;
 
 				//send accelerometer values and  to GUI
-                sharedmem.send_data(ts, newPoint.collected_data, currentIRI);
+                sharedmem.send_data(ts, newPoint.collected_data, roadRating);
 			}
 			prevPoint = newPoint;
 
@@ -334,6 +338,28 @@ class RoadMonitor{
 				//update current IRI reading
 				cout<<"\n\nReceived IRI from python: "<<received<<"\n";
 				currentIRI = received; //change to be output of the python code.
+
+				badThresh = 40;
+				fairThresh = 30;
+				goodThresh = 20;
+				excellentThresh = 10;
+
+				if (currentIRI <= excellentThresh){
+					roadRating = 5;
+				}
+				else if (currentIRI <= goodThresh){
+					roadRating = 4;
+				}
+				else if (currentIRI <= fairThresh){
+					roadRating = 3;
+				}
+				else if (currentIRI <= badThresh){
+					roadRating = 2;
+				}
+				else{
+					roadRating = 1;
+				}
+
 				
 				//send to database
 				/**********/
