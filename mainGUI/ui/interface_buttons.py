@@ -364,6 +364,7 @@ class PasswordInputPopup(Popup):
             hint_text='Enter network password'
         )
         main_layout.add_widget(self.password_input)
+        self.password_input.focus = True
         
         # Create horizontal layout for Connect and Cancel buttons.
         buttons_layout = BoxLayout(orientation='horizontal', size_hint_y=0.3, spacing=10)
@@ -404,12 +405,13 @@ class PasswordInputPopup(Popup):
         Args:
             instance: The button widget that triggered this event.
         """
+        self.dismiss()
         # Get the password text from the input field.
         password = self.password_input.text
         # Only proceed if callback exists and password is not empty.
         if self.on_connect_callback and password:
             # Call the callback with the SSID and password for WiFi connection.
             # The callback (on_network_connect in config_screen.py) handles the actual connection.
-            self.dismiss()
             self.on_connect_callback(self.ssid, password)
+            
         # Close this popup after attempting connection.

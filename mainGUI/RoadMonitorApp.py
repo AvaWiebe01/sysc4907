@@ -23,6 +23,7 @@ from screens.main_screen import MainMenu
 
 Config.set('kivy', 'exit_on_escape', '0')
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
+Config.set('kivy', 'keyboard_mode', 'dock')
 
 # UI base size
 BASE_WIDTH = 800
